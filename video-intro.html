@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'/>
+<title>intro animator</title>
+<style>
+body {
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	overflow: hidden;
+}
+</style>
+</head>
+<body>
+<canvas width='1920' height='1080' id='can' onclick=''></canvas>
+<script>
+const canvas = document.getElementById('can');
+const ctx = canvas.getContext('2d');
+
+canvas.style.backgroundColor = '#000000';
+
+let text = [];
+let frame = 0;
+let length = 3;
+let input_word = [['Sample header',34,1,0],['Sample text',16,0,-48],['Subtext',24,0,48]];	// text, size, glow, position
+let s = { expand: .7, base: .03 };
+let a = { type: 'fade', lgt: 50 };
+let e = [];
+let ease = { t: true, c: .02, f: .02, m: .01, s: .002 };	// type, current, friction (max), minimum, smoother
+let debug = 1;
+let bg = { w: canvas.width/3, c: 'rgb(0,0,0)', bc: 10 };
+let global = { glow_o: 1, font: 'Roboto', render: true, rendered: false };
+let rendered = [];
+
+console.log(window.innerWidth + ',' + window.innerHeight);
+
+function alg(i,t) {
+	return text[t].w * i + text[t].w * (input_word[t][0].split('').length/2) + text[t].w/2 - input_word[t][0].split('').length * text[t].w;
+}
+
+function rov(obj) {	// return object values
+	let str = '';
+	for (let i = 0; i < Object.keys(obj).length; i++){
+		if (Object.values(obj)[i].constructor === Array) continue;
+		str += (Object.keys(obj)[i] + ': ' + Object.values(obj)[i] + ', ');
+	}
+	return str;
+}
+
+function animation(goal) {
+	switch (a.type) {
+		case 'fade':
+			if (a.lgt - frame < 0){
+				return goal;
+			}else{
+				return (a.lgt - frame) / goal;
+			}
+			break;
+	}
+}
+
+function effects(){
+	for (let i = 0; i < e.length; i++){
+		switch (e[i]){
+			case 'flicker':
+				global.glow_o = Math.random()*.5+.5;
+				break;
+		}
+	}
+}
+
+function render() {
+	return new Promise((resolve,reject) => {
+		rendered[frame] = new Image();
+		rendered[frame].src = canvas.toDataURL();
+		if (frame == length*60){
+			global.rendered = true;
+			frame = 0;
+			global.render = false;
+			resolve(true);
+		}
+		resolve(false);
+	});
+}
+
+function init() {
+	for (let j = 0; j < input_word.length; j++){
+		text[j] = { txt: [], x: canvas.width/2, y: canvas.height/2, w: input_word[j][1]/1.5, s: 1 }
+		console.log(j);
+		
+		for (let i = 0; i < input_word[j][0].split('').length; i++){
+			text[j].txt[i] = {t: input_word[j][0][i], x: alg(i,j), y: 0+input_word[j][3], a: 1};
+		}
+	}
+}
+
+function loop() {
+	if (frame < length*60){
+		frame += 1;
+	}else{
+		return;
+	}
+	
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+	
+	if (global.rendered){
+		
+		ctx.drawImage(rendered[frame],0,0);
+		
+	}else{
+		
+		/*   background   */
+		
+		let bg_a = Math.log(frame)*bg.bc+bg.bc;
+		let bg_grad = ctx.createRadialGradient(canvas.width/2,canvas.height/2,0,canvas.width/2,canvas.height/2,bg.w);
+		bg_grad.addColorStop(0,'rgb('+bg_a+','+bg_a+','+bg_a+')');
+		bg_grad.addColorStop(1,bg.c);
+		
+		ctx.fillStyle = bg_grad;
+		ctx.fillRect(0,0,canvas.width,canvas.height);
+		
+		for (let j = 0; j < text.length; j++){
+			text[j].x = canvas.width/2;
+			text[j].y = canvas.height/2;
+			
+			/*   text   */
+			
+			for (let i = 0; i < text[j].txt.length; i++){
+				ctx.font = input_word[j][1] + text[j].s + 'px ' + global.font;
+				ctx.textAlign = 'center';
+				text[j].txt[i].x = alg(i,j);
+				if (input_word[j][2]){
+					ctx.filter = 'blur('+input_word[j][2]+'px)';
+					ctx.fillStyle = 'rgba(255,255,255,' + global.glow_o + ')';
+					ctx.fillText(text[j].txt[i].t,text[j].x + text[j].txt[i].x, text[j].y + text[j].txt[i].y);
+					ctx.filter = 'none';
+				}
+				ctx.fillStyle = 'rgba(255,255,255,' + animation(text[j].txt[i].a) + ')';
+				ctx.fillText(text[j].txt[i].t,text[j].x + text[j].txt[i].x, text[j].y + text[j].txt[i].y);
+			}
+			
+			/*   move text   */
+			
+			if (ease.t){ if (ease.c > ease.m){ ease.c -= ease.s }else{ ease.c = ease.m }}
+			if (s.expand > s.base) s.expand -= ease.c;
+			if (s.expand < s.base) s.expand = s.base;
+			text[j].w += s.expand;
+			//text[j].s += Math.round(s.expand);
+			
+			/*   effects   */
+			
+			if (e.length){
+				effects();
+			}
+			
+			/*   debug   */
+			
+			if (debug){
+				let dtxt = '';
+				dtxt += 'Frame: ' + frame + '/' + length*60 + '\n';
+				dtxt += 'length: ' + length + 's' + '\n';
+				dtxt += 'input_word: ' + input_word + '\n';
+				for (i = 0; i < text.length; i++){
+					dtxt += 'text' + i + ': ' + rov(text[i]) + '\n';
+				}
+				dtxt += 's: ' + rov(s) + '\n';
+				dtxt += 'a: ' + rov(a) + '\n';
+				dtxt += 'ease: ' + rov(ease) + '\n';
+				dtxt += 'bg: ' + rov(bg) + '\n';
+				dtxt += 'global: ' + rov(global) + '\n';
+				
+				ctx.fillStyle = 'rgb(0,255,0)';
+				ctx.font = '12px Arial';
+				ctx.textAlign = 'left';
+				
+				dtxt = dtxt.split('\n');
+				for (let i = 0; i < dtxt.length; i++){
+					ctx.fillText(dtxt[i],32,32+i*16);
+				}
+			}
+		}
+	}
+	
+	if (global.render){
+		render().then((value) => {
+			if (value){
+				alert('el finisho');
+				loop();
+			}else{
+				requestAnimationFrame(loop);
+			}
+		}).catch((value) => {
+			alert(value);
+		});
+	}else{
+		requestAnimationFrame(loop);
+	}
+}
+init();
+loop();
+</script>
+</body>
+</html>
