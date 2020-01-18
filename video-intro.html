@@ -22,14 +22,13 @@ canvas.style.backgroundColor = '#000000';
 
 let text = [];
 let frame = 0;
-let length = 3;
 let input_word = [];	// text, size, glow, position, brightness
 let s = { expand: .7, base: .03 };
 let a = { type: 'fade', lgt: 50 };
 let e = [];
-let ease = { t: true, c: .02, f: .02, m: .01, s: .002 };	// type, current, friction (max), minimum, smoother
+let ease = { c: 1.05, h: 3 };	// curve, backholder
 let bg = { w: canvas.width/2, c: 'rgb(0,0,0)', bc: 10 };
-let global = { glow_o: 1, font: 'Roboto', debug: false, render: false, rendered: false };
+let global = { glow_o: 1, font: 'Roboto', debug: false, duration: 3, render: false, rendered: false };
 let rendered = [];
 
 console.log(window.innerWidth + ',' + window.innerHeight);
@@ -73,7 +72,7 @@ function render() {
 	return new Promise((resolve,reject) => {
 		rendered[frame] = new Image();
 		rendered[frame].src = canvas.toDataURL();
-		if (frame == length*60){
+		if (frame == global.duration*60){
 			global.rendered = true;
 			frame = 0;
 			global.render = false;
@@ -91,6 +90,12 @@ function init() {
 	global.font = localStorage.getItem('font');
 	global.debug = localStorage.getItem('debug');
 	global.render = localStorage.getItem('render');
+	global.duration = localStorage.getItem('length');
+	
+	e = localStorage.getItem('effects').split('||');
+	
+	ease.c = localStorage.getItem('ease_c');
+	ease.h = localStorage.getItem('ease_h');
 	
 	bg.bc = localStorage.getItem('bg_bright');
 	
@@ -98,11 +103,11 @@ function init() {
 	
 	for (let i = 0; i < url.searchParams.get('length'); i++){
 		let t = localStorage.getItem('input_text_'+i).split('_sep_');
-		input_word[i] = [ t[0],Number(t[1]),Number(t[2]),Number(t[3]),Number(t[4]) ];
+		input_word[i] = [ t[0],Number(t[1]),Number(t[2]),Number(t[3]),Number(t[4]),Number(t[5]) ];
 	}
 	
 	for (let j = 0; j < input_word.length; j++){
-		text[j] = { txt: [], x: canvas.width/2, y: canvas.height/2, w: input_word[j][1]/1.5, s: 1 }
+		text[j] = { txt: [], x: canvas.width/2, y: canvas.height/2, w: input_word[j][5], w_o: input_word[j][5], s: 1 }
 		console.log(j);
 		
 		for (let i = 0; i < input_word[j][0].split('').length; i++){
@@ -112,7 +117,7 @@ function init() {
 }
 
 function loop() {
-	if (frame < length*60){
+	if (frame < global.duration*60){
 		frame += 1;
 	}else{
 		if (global.rendered){
@@ -170,11 +175,7 @@ function loop() {
 			
 			/*   move text   */
 			
-			if (ease.t){ if (ease.c > ease.m){ ease.c -= ease.s }else{ ease.c = ease.m }}
-			if (s.expand > s.base) s.expand -= ease.c;
-			if (s.expand < s.base) s.expand = s.base;
-			text[j].w += s.expand;
-			//text[j].s += Math.round(s.expand);
+			text[j].w = text[j].w_o + (Math.log(frame + 1) / Math.log(ease.c)) / ease.h;
 			
 			/*   effects   */
 			
@@ -188,8 +189,8 @@ function loop() {
 			
 			if (global.debug === 'true'){
 				let dtxt = '';
-				dtxt += 'Frame: ' + frame + '/' + length*60 + '\n';
-				dtxt += 'length: ' + length + 's' + '\n';
+				dtxt += 'Frame: ' + frame + '/' + global.duration*60 + '\n';
+				dtxt += 'length: ' + global.duration + 's' + '\n';
 				dtxt += 'input_word: ' + input_word + '\n';
 				for (i = 0; i < text.length; i++){
 					dtxt += 'text' + i + ': ' + rov(text[i]) + '\n';
