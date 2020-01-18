@@ -8,7 +8,7 @@
 
 <button onclick='newText();'>New</button>
 <button onclick='rmText();'>Remove</button>
-<text>text,size,glow,position,brightness</text><br>
+<text>text,size,glow,position,brightness,width</text><br>
 
 <div id='div_text'></div>
 
@@ -24,7 +24,22 @@
 <br>
 
 <br>
-<text>bg brightness</text><input id='bg' maxlength=2 size=2 />
+<text>BG Brightness</text><input id='bg' maxlength=2 size=2 />
+<br>
+
+<br>
+<text>Easing</text><br>
+<text>Curve (c)</text><input id='ease_c' size=5 maxlength=5 /><text>Divider (h)</text><input id='ease_h' size=5 maxlength=5 /><br><br>
+<text>Easing formula:</text><br><img src='txt.png' height=65></img>
+<br>
+
+<br>
+<text>Effects</text><br>
+<input type='checkbox' id='e_flc'>Flicker</input>
+<br>
+
+<br>
+<text>Length (in seconds)</text><input id='length' maxlength=2 size=2 />
 <br>
 
 <br>
@@ -33,11 +48,13 @@
 <br>
 
 <br>
-<button onclick='create();'>create intro</button>
+<button onclick='create();'>Create</button>
 
 <script>
 
 let o = document.getElementById('div_text');
+
+document.getElementById('bg').setAttribute('value',10);
 
 function newText() {
 	let n_div = document.createElement('div');
@@ -48,12 +65,14 @@ function newText() {
 	let n_ing = document.createElement('input'); n_ing.setAttribute('maxlength',2); n_ing.setAttribute('size',2); n_ing.setAttribute('value',0);
 	let n_inp = document.createElement('input'); n_inp.setAttribute('maxlength',5); n_inp.setAttribute('size',5); n_inp.setAttribute('value',0);
 	let n_inb = document.createElement('input'); n_inb.setAttribute('maxlength',3); n_inb.setAttribute('size',3); n_inb.setAttribute('value',255);
+	let n_inw = document.createElement('input'); n_inw.setAttribute('maxlength',3); n_inw.setAttribute('size',3); n_inw.setAttribute('value',14);
 	
 	n_div.appendChild(n_int);
 	n_div.appendChild(n_ins);
 	n_div.appendChild(n_ing);
 	n_div.appendChild(n_inp);
 	n_div.appendChild(n_inb);
+	n_div.appendChild(n_inw);
 	
 	o.appendChild(n_div);
 }
@@ -65,7 +84,7 @@ function rmText() {
 function create(){
 	for (let i = 0; i < o.children.length; i++){
 		let dval = '';
-		for (let j = 0; j < 5; j++){
+		for (let j = 0; j < 6; j++){
 			dval += document.getElementById('input_text_'+i).children[j].value + '_sep_';
 		}
 		console.log(dval);
@@ -76,6 +95,13 @@ function create(){
 	localStorage.setItem('render',document.getElementById('i_rnd').checked);
 	localStorage.setItem('debug',document.getElementById('i_dbg').checked);
 	localStorage.setItem('bg_bright',document.getElementById('bg').value);
+	localStorage.setItem('length',document.getElementById('length').value);
+	localStorage.setItem('ease_c',document.getElementById('ease_c').value);
+	localStorage.setItem('ease_h',document.getElementById('ease_h').value);
+	
+	let e_save = '';
+	if (document.getElementById('e_flc').checked){ e_save += 'flicker||'; }
+	localStorage.setItem('effects',e_save);
 	
 	window.open('video-intro.html?length='+o.children.length);
 }
