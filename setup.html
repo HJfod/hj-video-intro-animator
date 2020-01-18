@@ -8,7 +8,7 @@
 
 <button onclick='newText();'>New</button>
 <button onclick='rmText();'>Remove</button>
-<text>text,size,glow,position,brightness,width</text><br>
+<text>text,size,glow,position,brightness,width,a_time,a_inbetween,a_offset</text><br>
 
 <div id='div_text'></div>
 
@@ -24,7 +24,8 @@
 <br>
 
 <br>
-<text>BG Brightness</text><input id='bg' maxlength=2 size=2 />
+<text>BG Brightness</text><input id='bgb' maxlength=2 size=2 />
+<text>BG Time</text><input id='bgt' maxlength=3 size=3 />
 <br>
 
 <br>
@@ -35,7 +36,7 @@
 
 <br>
 <text>Effects</text><br>
-<input type='checkbox' id='e_flc'>Flicker</input>
+<input type='checkbox' id='e_flc'>Flicker</input><br>
 <br>
 
 <br>
@@ -56,23 +57,26 @@ let o = document.getElementById('div_text');
 
 document.getElementById('bg').setAttribute('value',10);
 
+function textValue(d,l,f) {
+	let n = document.createElement('input'); n.setAttribute('maxlength',l); n.setAttribute('size',l); n.setAttribute('value',f);
+	d.appendChild(n);
+}
+
 function newText() {
 	let n_div = document.createElement('div');
 	n_div.setAttribute('id','input_text_' + o.children.length);
 	
 	let n_int = document.createElement('input'); n_int.setAttribute('value','Default Text');
-	let n_ins = document.createElement('input'); n_ins.setAttribute('maxlength',3); n_ins.setAttribute('size',3); n_ins.setAttribute('value',20);
-	let n_ing = document.createElement('input'); n_ing.setAttribute('maxlength',2); n_ing.setAttribute('size',2); n_ing.setAttribute('value',0);
-	let n_inp = document.createElement('input'); n_inp.setAttribute('maxlength',5); n_inp.setAttribute('size',5); n_inp.setAttribute('value',0);
-	let n_inb = document.createElement('input'); n_inb.setAttribute('maxlength',3); n_inb.setAttribute('size',3); n_inb.setAttribute('value',255);
-	let n_inw = document.createElement('input'); n_inw.setAttribute('maxlength',3); n_inw.setAttribute('size',3); n_inw.setAttribute('value',14);
-	
 	n_div.appendChild(n_int);
-	n_div.appendChild(n_ins);
-	n_div.appendChild(n_ing);
-	n_div.appendChild(n_inp);
-	n_div.appendChild(n_inb);
-	n_div.appendChild(n_inw);
+	
+	textValue(n_div,3,20);
+	textValue(n_div,2,0);
+	textValue(n_div,5,0);
+	textValue(n_div,3,255);
+	textValue(n_div,3,14);
+	textValue(n_div,3,20);
+	textValue(n_div,3,10);
+	textValue(n_div,3,0);
 	
 	o.appendChild(n_div);
 }
@@ -84,8 +88,8 @@ function rmText() {
 function create(){
 	for (let i = 0; i < o.children.length; i++){
 		let dval = '';
-		for (let j = 0; j < 6; j++){
-			dval += document.getElementById('input_text_'+i).children[j].value + '_sep_';
+		for (let j = 0; j < o.children[i].children.length; j++){
+			dval += o.children[i].children[j].value + '_sep_';
 		}
 		console.log(dval);
 		localStorage.setItem('input_text_'+i,dval);
@@ -94,7 +98,8 @@ function create(){
 	localStorage.setItem('font',document.getElementById('font').value);
 	localStorage.setItem('render',document.getElementById('i_rnd').checked);
 	localStorage.setItem('debug',document.getElementById('i_dbg').checked);
-	localStorage.setItem('bg_bright',document.getElementById('bg').value);
+	localStorage.setItem('bg_bright',Number(document.getElementById('bgb').value));
+	localStorage.setItem('bg_time',Number(document.getElementById('bgt').value));
 	localStorage.setItem('length',document.getElementById('length').value);
 	localStorage.setItem('ease_c',document.getElementById('ease_c').value);
 	localStorage.setItem('ease_h',document.getElementById('ease_h').value);
