@@ -24,11 +24,10 @@ let text = [];
 let frame = 0;
 let input_word = [];	// text, size, glow, position, brightness
 let s = { expand: .7, base: .03 };
-let a = { type: 'fade', lgt: 50 };
 let e = [];
 let ease = { c: 1.05, h: 3 };	// curve, backholder
-let bg = { w: canvas.width/2, c: 'rgb(0,0,0)', bc: 10 };
-let global = { glow_o: 1, font: 'Roboto', debug: false, duration: 3, render: false, rendered: false };
+let bg = { w: canvas.width/2, c: 'rgb(0,0,0)', bc: 10, time: 0 };
+let global = { glow_o: 0, font: 'Roboto', debug: false, duration: 3, render: false, rendered: false };
 let rendered = [];
 
 console.log(window.innerWidth + ',' + window.innerHeight);
@@ -46,23 +45,11 @@ function rov(obj) {	// return object values
 	return str;
 }
 
-function animation(goal) {
-	switch (a.type) {
-		case 'fade':
-			if (a.lgt - frame < 0){
-				return goal;
-			}else{
-				return (a.lgt - frame) / goal;
-			}
-			break;
-	}
-}
-
 function effects(){
 	for (let i = 0; i < e.length; i++){
 		switch (e[i]){
 			case 'flicker':
-				global.glow_o = Math.random()*.5+.5;
+				global.glow_o = Math.random()*.5;
 				break;
 		}
 	}
@@ -97,23 +84,40 @@ function init() {
 	ease.c = localStorage.getItem('ease_c');
 	ease.h = localStorage.getItem('ease_h');
 	
-	bg.bc = localStorage.getItem('bg_bright');
+	bg.bc = Number(localStorage.getItem('bg_bright'));
+	bg.time = Number(localStorage.getItem('bg_time'));
 	
 	console.log(bg.bc);
+	console.log(bg.time);
 	
 	for (let i = 0; i < url.searchParams.get('length'); i++){
 		let t = localStorage.getItem('input_text_'+i).split('_sep_');
-		input_word[i] = [ t[0],Number(t[1]),Number(t[2]),Number(t[3]),Number(t[4]),Number(t[5]) ];
+		input_word[i] = [ t[0],Number(t[1]),Number(t[2]),Number(t[3]),Number(t[4]),Number(t[5]),Number(t[6]),Number(t[7]),Number(t[8]) ];
 	}
 	
 	for (let j = 0; j < input_word.length; j++){
-		text[j] = { txt: [], x: canvas.width/2, y: canvas.height/2, w: input_word[j][5], w_o: input_word[j][5], s: 1 }
+		text[j] = { txt: [], x: canvas.width/2, y: canvas.height/2, w: input_word[j][5], w_o: input_word[j][5], s: 1, a_time: input_word[j][6], a_inbetween: input_word[j][7], a_offset: input_word[j][8] }
 		console.log(j);
 		
 		for (let i = 0; i < input_word[j][0].split('').length; i++){
-			text[j].txt[i] = {t: input_word[j][0][i], x: alg(i,j), y: 0+input_word[j][3], a: 1, b: input_word[j][4] };
+			text[j].txt[i] = { t: input_word[j][0][i], x: alg(i,j), y: 0+input_word[j][3], a: 1, b: input_word[j][4] };
 		}
 	}
+}
+
+function animation(t,i){
+	let b = 0;
+	if (text[t].a_inbetween){
+		b = i*text[t].a_inbetween;
+	}
+	let g = ( frame - text[t].a_offset - b )/ text[t].a_time;
+	if (g > 1){
+		g = 1;
+	}
+	if (g < 0){
+		g = 0;
+	}
+	return g;
 }
 
 function loop() {
@@ -145,7 +149,15 @@ function loop() {
 		
 		/*   background   */
 		
-		let bg_a = Math.log(frame)*bg.bc+bg.bc;
+		let f = frame-bg.time;
+		if (f < 0){ f = 0; }
+		let bg_a = bg.bc*Math.log(f)-bg.time;
+		if (bg_a < 0){
+			bg_a = 0;
+		}
+		if (bg_a > 255){
+			bg_a = 255;
+		}
 		let bg_grad = ctx.createRadialGradient(canvas.width/2,canvas.height/2,0,canvas.width/2,canvas.height/2,bg.w);
 		bg_grad.addColorStop(0,'rgb('+bg_a+','+bg_a+','+bg_a+')');
 		bg_grad.addColorStop(1,bg.c);
@@ -165,11 +177,11 @@ function loop() {
 				text[j].txt[i].x = alg(i,j);
 				if (input_word[j][2]){
 					ctx.filter = 'blur('+input_word[j][2]+'px)';
-					ctx.fillStyle = 'rgba('+text[j].txt[i].b+','+text[j].txt[i].b+','+text[j].txt[i].b+','+global.glow_o+')';
+					ctx.fillStyle = 'rgba('+text[j].txt[i].b+','+text[j].txt[i].b+','+text[j].txt[i].b+','+(animation(j,i)-global.glow_o)+')';
 					ctx.fillText(text[j].txt[i].t,text[j].x + text[j].txt[i].x, text[j].y + text[j].txt[i].y);
 					ctx.filter = 'none';
 				}
-				ctx.fillStyle = 'rgba('+text[j].txt[i].b+','+text[j].txt[i].b+','+text[j].txt[i].b+','+animation(text[j].txt[i].a)+')';
+				ctx.fillStyle = 'rgba('+text[j].txt[i].b+','+text[j].txt[i].b+','+text[j].txt[i].b+','+animation(j,i)+')';
 				ctx.fillText(text[j].txt[i].t,text[j].x + text[j].txt[i].x, text[j].y + text[j].txt[i].y);
 			}
 			
@@ -185,8 +197,6 @@ function loop() {
 			
 			/*   debug   */
 			
-			console.log(global.debug);
-			
 			if (global.debug === 'true'){
 				let dtxt = '';
 				dtxt += 'Frame: ' + frame + '/' + global.duration*60 + '\n';
@@ -196,7 +206,6 @@ function loop() {
 					dtxt += 'text' + i + ': ' + rov(text[i]) + '\n';
 				}
 				dtxt += 's: ' + rov(s) + '\n';
-				dtxt += 'a: ' + rov(a) + '\n';
 				dtxt += 'ease: ' + rov(ease) + '\n';
 				dtxt += 'bg: ' + rov(bg) + '\n';
 				dtxt += 'global: ' + rov(global) + '\n';
