@@ -5,6 +5,16 @@
 <title>intro animator</title>
 </head>
 <body>
-<button onclick='window.open("video-intro.html")'>create intro</button>
+
+<button onclick='create();'>create intro</button>
+
+<script>
+
+function create(){
+	localStorage.setItem('input_text_0','test');
+	window.open('video-intro.html');
+}
+
+</script>
 </body>
 </html>
