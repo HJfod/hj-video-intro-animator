@@ -63,8 +63,10 @@ function render() {
 			global.rendered = true;
 			frame = 0;
 			global.render = false;
+			document.title = 'the cake is done';
 			resolve(true);
 		}
+		document.title = 'rendered ' + frame + '/' + global.duration*60;
 		resolve(false);
 	});
 }
