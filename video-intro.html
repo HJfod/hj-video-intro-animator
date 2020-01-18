@@ -115,7 +115,11 @@ function loop() {
 	if (frame < length*60){
 		frame += 1;
 	}else{
-		return;
+		if (global.rendered){
+			frame = 1;
+		}else{
+			return;
+		}
 	}
 	
 	canvas.width = window.innerWidth;
@@ -123,7 +127,14 @@ function loop() {
 	
 	if (global.rendered){
 		
-		ctx.drawImage(rendered[frame],0,0);
+		ctx.fillStyle = '#000';
+		ctx.fillRect(0,0,canvas.width,canvas.height);
+		ctx.drawImage(rendered[frame],canvas.width/4,canvas.height/4,canvas.width/2,canvas.height/2);
+		ctx.fillStyle = '#fff';
+		ctx.font = '40px Bebas Neue';
+		ctx.textAlign = 'center';
+		ctx.fillText('Finished video:',canvas.width/2,canvas.height/5);
+		ctx.fillText('Press L to Download',canvas.width/2,canvas.height/1.2);
 		
 	}else{
 		
