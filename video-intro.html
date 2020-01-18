@@ -23,14 +23,13 @@ canvas.style.backgroundColor = '#000000';
 let text = [];
 let frame = 0;
 let length = 3;
-let input_word = [[localStorage.getItem('input_text_0'),34,1,0],['Sample text',16,0,-48],['Subtext',24,0,48]];	// text, size, glow, position
+let input_word = [];	// text, size, glow, position, brightness
 let s = { expand: .7, base: .03 };
 let a = { type: 'fade', lgt: 50 };
 let e = [];
 let ease = { t: true, c: .02, f: .02, m: .01, s: .002 };	// type, current, friction (max), minimum, smoother
-let debug = 1;
-let bg = { w: canvas.width/3, c: 'rgb(0,0,0)', bc: 10 };
-let global = { glow_o: 1, font: 'Roboto', render: false, rendered: false };
+let bg = { w: canvas.width/2, c: 'rgb(0,0,0)', bc: 10 };
+let global = { glow_o: 1, font: 'Roboto', debug: false, render: false, rendered: false };
 let rendered = [];
 
 console.log(window.innerWidth + ',' + window.innerHeight);
@@ -85,12 +84,29 @@ function render() {
 }
 
 function init() {
+	let url = new URL(window.location.href);
+	
+	console.log(url.searchParams.get('length'));
+	
+	global.font = localStorage.getItem('font');
+	global.debug = localStorage.getItem('debug');
+	global.render = localStorage.getItem('render');
+	
+	bg.bc = localStorage.getItem('bg_bright');
+	
+	console.log(bg.bc);
+	
+	for (let i = 0; i < url.searchParams.get('length'); i++){
+		let t = localStorage.getItem('input_text_'+i).split('_sep_');
+		input_word[i] = [ t[0],Number(t[1]),Number(t[2]),Number(t[3]),Number(t[4]) ];
+	}
+	
 	for (let j = 0; j < input_word.length; j++){
 		text[j] = { txt: [], x: canvas.width/2, y: canvas.height/2, w: input_word[j][1]/1.5, s: 1 }
 		console.log(j);
 		
 		for (let i = 0; i < input_word[j][0].split('').length; i++){
-			text[j].txt[i] = {t: input_word[j][0][i], x: alg(i,j), y: 0+input_word[j][3], a: 1};
+			text[j].txt[i] = {t: input_word[j][0][i], x: alg(i,j), y: 0+input_word[j][3], a: 1, b: input_word[j][4] };
 		}
 	}
 }
@@ -133,11 +149,11 @@ function loop() {
 				text[j].txt[i].x = alg(i,j);
 				if (input_word[j][2]){
 					ctx.filter = 'blur('+input_word[j][2]+'px)';
-					ctx.fillStyle = 'rgba(255,255,255,' + global.glow_o + ')';
+					ctx.fillStyle = 'rgba('+text[j].txt[i].b+','+text[j].txt[i].b+','+text[j].txt[i].b+','+global.glow_o+')';
 					ctx.fillText(text[j].txt[i].t,text[j].x + text[j].txt[i].x, text[j].y + text[j].txt[i].y);
 					ctx.filter = 'none';
 				}
-				ctx.fillStyle = 'rgba(255,255,255,' + animation(text[j].txt[i].a) + ')';
+				ctx.fillStyle = 'rgba('+text[j].txt[i].b+','+text[j].txt[i].b+','+text[j].txt[i].b+','+animation(text[j].txt[i].a)+')';
 				ctx.fillText(text[j].txt[i].t,text[j].x + text[j].txt[i].x, text[j].y + text[j].txt[i].y);
 			}
 			
@@ -157,7 +173,9 @@ function loop() {
 			
 			/*   debug   */
 			
-			if (debug){
+			console.log(global.debug);
+			
+			if (global.debug === 'true'){
 				let dtxt = '';
 				dtxt += 'Frame: ' + frame + '/' + length*60 + '\n';
 				dtxt += 'length: ' + length + 's' + '\n';
@@ -183,7 +201,7 @@ function loop() {
 		}
 	}
 	
-	if (global.render){
+	if (global.render === 'true'){
 		render().then((value) => {
 			if (value){
 				alert('el finisho');
