@@ -42,6 +42,8 @@
 <text>target,start_time,duration,amount</text>
 <div id='div_events'></div>
 <br>
+<text>Events formula:</text><br><img src='events.png' height=120></img>
+<br>
 
 <br>
 <text>Effects</text><br>
@@ -66,6 +68,8 @@ let o = document.getElementById('div_text');
 let e = document.getElementById('div_events');
 
 document.getElementById('bgb').setAttribute('value',10);
+document.getElementById('bgt').setAttribute('value',0);
+document.getElementById('length').setAttribute('value',5);
 
 function textValue(d,l,f) {
 	let n = document.createElement('input'); n.setAttribute('maxlength',l); n.setAttribute('size',l); n.setAttribute('value',f);
