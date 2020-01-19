@@ -6,6 +6,7 @@
 </head>
 <body>
 
+<text>Text</text>
 <button onclick='newText();'>New</button>
 <button onclick='rmText();'>Remove</button>
 <text>text,size,glow,position,brightness,width,a_time,a_inbetween,a_offset</text><br>
@@ -35,8 +36,16 @@
 <br>
 
 <br>
+<text>Events</text>
+<button onclick='ev(true)'>New</button>
+<button onclick='ev(false)'>Delete</button>
+<text>target,start_time,duration,amount</text>
+<div id='div_events'></div>
+<br>
+
+<br>
 <text>Effects</text><br>
-<input type='checkbox' id='e_flc'>Flicker</input><br>
+<input type='checkbox' id='e_flc'>Flicker</input>
 <br>
 
 <br>
@@ -54,12 +63,29 @@
 <script>
 
 let o = document.getElementById('div_text');
+let e = document.getElementById('div_events');
 
 document.getElementById('bgb').setAttribute('value',10);
 
 function textValue(d,l,f) {
 	let n = document.createElement('input'); n.setAttribute('maxlength',l); n.setAttribute('size',l); n.setAttribute('value',f);
 	d.appendChild(n);
+}
+
+function ev(create) {
+	if (create){
+		let n_div = document.createElement('div');
+		n_div.setAttribute('id','input_event_' + e.children.length);
+		
+		textValue(n_div,2,0);
+		textValue(n_div,3,60);
+		textValue(n_div,3,30);
+		textValue(n_div,4,50);
+		
+		e.appendChild(n_div);
+	}else{
+		e.removeChild(e.children[e.children.length-1]);
+	}
 }
 
 function newText() {
@@ -95,6 +121,15 @@ function create(){
 		localStorage.setItem('input_text_'+i,dval);
 	}
 	
+	for (let i = 0; i < e.children.length; i++){
+		let dval = '';
+		for (let j = 0; j < e.children[i].children.length; j++){
+			dval += e.children[i].children[j].value + '_sep_';
+		}
+		console.log(dval);
+		localStorage.setItem('input_event_'+i,dval);
+	}
+	
 	localStorage.setItem('font',document.getElementById('font').value);
 	localStorage.setItem('render',document.getElementById('i_rnd').checked);
 	localStorage.setItem('debug',document.getElementById('i_dbg').checked);
@@ -108,7 +143,7 @@ function create(){
 	if (document.getElementById('e_flc').checked){ e_save += 'flicker||'; }
 	localStorage.setItem('effects',e_save);
 	
-	window.open('video-intro.html?length='+o.children.length);
+	window.open('video-intro.html?length='+o.children.length+'&events='+e.children.length);
 }
 
 </script>
