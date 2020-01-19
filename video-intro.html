@@ -29,8 +29,12 @@ let ease = { c: 1.05, h: 3 };	// curve, backholder
 let bg = { w: canvas.width/2, c: 'rgb(0,0,0)', bc: 10, time: 0 };
 let global = { glow_o: 0, font: 'Roboto', debug: false, duration: 3, render: false, rendered: false };
 let rendered = [];
+let events = [];
 
 console.log(window.innerWidth + ',' + window.innerHeight);
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
 function alg(i,t) {
 	return text[t].w * i + text[t].w * (input_word[t][0].split('').length/2) + text[t].w/2 - input_word[t][0].split('').length * text[t].w;
@@ -71,6 +75,24 @@ function render() {
 	});
 }
 
+function handle_events(t) {
+	for (let i = 0; i < events.length; i++){
+		if (t != events[i].target){
+			continue;
+		}
+		let r = 0;
+		if (frame > events[i].start_time && frame < events[i].start_time + events[i].duration){
+			r = Math.pow(Math.sin( ( (2*Math.PI) / (events[i].duration*4) ) * (frame - events[i].start_time) ),2)*events[i].amount;
+		}else if (frame == events[i].start_time + events[i].duration){
+			text[events[i].target].y_o += events[i].amount;
+			r = 0;
+		}else{
+			continue;
+		}
+		text[events[i].target].y = text[events[i].target].y_o + r;
+	}
+}
+
 function init() {
 	let url = new URL(window.location.href);
 	
@@ -92,13 +114,18 @@ function init() {
 	console.log(bg.bc);
 	console.log(bg.time);
 	
+	for (let i = 0; i < url.searchParams.get('events'); i++){
+		let t = localStorage.getItem('input_event_'+i).split('_sep_');
+		events[i] = { target: Number(t[0]), start_time: Number(t[1]), duration: Number(t[2]), amount: Number(t[3]) };
+	}
+	
 	for (let i = 0; i < url.searchParams.get('length'); i++){
 		let t = localStorage.getItem('input_text_'+i).split('_sep_');
 		input_word[i] = [ t[0],Number(t[1]),Number(t[2]),Number(t[3]),Number(t[4]),Number(t[5]),Number(t[6]),Number(t[7]),Number(t[8]) ];
 	}
 	
 	for (let j = 0; j < input_word.length; j++){
-		text[j] = { txt: [], x: canvas.width/2, y: canvas.height/2, w: input_word[j][5], w_o: input_word[j][5], s: 1, a_time: input_word[j][6], a_inbetween: input_word[j][7], a_offset: input_word[j][8] }
+		text[j] = { txt: [], x: canvas.width/2, y: canvas.height/2, y_o: canvas.height/2, w: input_word[j][5], w_o: input_word[j][5], s: 1, a_time: input_word[j][6], a_inbetween: input_word[j][7], a_offset: input_word[j][8] }
 		console.log(j);
 		
 		for (let i = 0; i < input_word[j][0].split('').length; i++){
@@ -169,7 +196,10 @@ function loop() {
 		
 		for (let j = 0; j < text.length; j++){
 			text[j].x = canvas.width/2;
-			text[j].y = canvas.height/2;
+			
+			if (events.length){
+				handle_events(j);
+			}
 			
 			/*   text   */
 			
@@ -206,6 +236,9 @@ function loop() {
 				dtxt += 'input_word: ' + input_word + '\n';
 				for (i = 0; i < text.length; i++){
 					dtxt += 'text' + i + ': ' + rov(text[i]) + '\n';
+				}
+				for (i = 0; i < events.length; i++){
+					dtxt += 'event' + i + ': ' + rov(events[i]) + '\n';
 				}
 				dtxt += 's: ' + rov(s) + '\n';
 				dtxt += 'ease: ' + rov(ease) + '\n';
