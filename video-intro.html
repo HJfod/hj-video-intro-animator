@@ -34,9 +34,7 @@ const canvas = document.getElementById('can');
 const ctx = canvas.getContext('2d');
 
 canvas.style.backgroundColor = '#000000';
-if (canvas.mozRequestFullScreen){
-	canvas.mozRequestFullScreen();
-}
+
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -53,8 +51,8 @@ let bg = { w: canvas.width/2, c: 'rgb(0,0,0)', bc: 10, time: 0 };
 let global = { glow_o: 0, frame_rate: 60, font: 'Roboto', debug: false, duration: 3, render: false, rendered: false, time: 0, render_time: 0 };
 let rendered = [];
 let events = [];
-let dust_particles = [];
-let particle_settings = [100,10];	// amount, speed
+let particles = [];
+let particle_settings = [100,1,3,.2];	// amount, speed, size, alpha
 
 console.log(window.innerWidth + ',' + window.innerHeight);
 
@@ -78,12 +76,24 @@ function effects(){
 				global.glow_o = Math.random()*.5;
 				break;
 			case 'dust':
-				for (let i = 0; i < dust_particles.length; i++){
-					dust_particles[i].x -= dust_particles[i].speed * Math.random()*dust_particles[i].speed;
-					dust_particles[i].y -= dust_particles[i].speed * Math.random()*dust_particles[i].speed;
+				for (let i = 0; i < particles.length; i++){
+					particles[i].x -= particles[i].speed;
+					particles[i].y += particles[i].speed;
+					if (particles[i].x < 0 || particles[i].y > canvas.height){
+						let q = [0,0];
+						if (Math.random() > .5){
+							q[0] = Math.random()*canvas.width;
+							q[1] = 0;
+						}else{
+							q[0] = canvas.width;
+							q[1] = Math.random()*canvas.height;
+						}
+						particles[i].x = q[0];
+						particles[i].y = q[1];
+					}
 					ctx.beginPath();
-					ctx.fillStyle = '#f00';
-					ctx.arc(dust_particles[i].x,dust_particles[i].y,Math.random()*10,0,2 * Math.PI);
+					ctx.fillStyle = 'rgb(255,255,255,' + particles[i].c + ')';
+					ctx.arc(particles[i].x,particles[i].y,particles[i].w,0,Math.PI*2);
 					ctx.fill();
 					ctx.closePath();
 				}
@@ -139,10 +149,15 @@ function init() {
 	
 	e = localStorage.getItem('effects').split('||');
 	
+	for (let i = 0; i < 4; i++){
+		particle_settings[i] = Number(localStorage.getItem('input_particle_'+i));
+		console.log(localStorage.getItem('input_particle_'+i));
+	}
+	
 	for (let i = 0; i < e.length; i++){
 		if (e[i] == 'dust'){
 			for (let i = 0; i < particle_settings[0]; i++){
-				dust_particles[i] = { x: canvas.width, y: 0, speed: Math.random()*particle_settings[1]+particle_settings[1] };
+				particles[i] = { x: Math.random()*canvas.width, y: Math.random()*canvas.height, w: Math.random()*particle_settings[2], speed: Math.random()*particle_settings[1]+particle_settings[1], c: Math.random()*particle_settings[3] };
 			}
 		}
 	}
@@ -211,17 +226,22 @@ function loop() {
 	
 	if (global.rendered){
 		
+		
+		
 		ctx.fillStyle = '#000';
 		ctx.fillRect(0,0,canvas.width,canvas.height);
 		ctx.drawImage(rendered[frame],canvas.width/10,canvas.height/4,canvas.width/2,canvas.height/2);
 		ctx.fillStyle = '#444';
-		ctx.fillRect(canvas.width/10,canvas.height/2+canvas.height/4+20,canvas.width/2,4);
+		ctx.fillRect(canvas.width/10,canvas.height/2+canvas.height/4+20,canvas.width/2.5,4);
 		ctx.fillStyle = '#aac';
-		ctx.fillRect(canvas.width/10,canvas.height/2+canvas.height/4+20,0+(frame*(canvas.width/2/(global.duration*global.frame_rate))),4);
+		ctx.fillRect(canvas.width/10,canvas.height/2+canvas.height/4+20,0+(frame*(canvas.width/2.5/(global.duration*global.frame_rate))),4);
+		ctx.textAlign = 'left';
+		ctx.font = '20px Bebas Neue';
+		ctx.fillText(frame + '/' + global.duration*global.frame_rate,canvas.width/10+canvas.width/2.5+24,canvas.height/2+canvas.height/4+26);
 		
+		ctx.textAlign = 'center';
 		ctx.fillStyle = '#fff';
 		ctx.font = '40px Bebas Neue';
-		ctx.textAlign = 'center';
 		ctx.fillText('Finished video',canvas.width/2,canvas.height/5);
 		ctx.fillStyle = '#aac';
 		ctx.font = '30px Bebas Neue';
@@ -309,7 +329,6 @@ function loop() {
 				dtxt += 'global: ' + rov(global) + '\n';
 				dtxt += 'e: ' + e + '\n';
 				dtxt += 'particle_settings: ' + particle_settings + '\n';
-				dtxt += 'particles: ' + rov(particles) + '\n';
 				
 				dtxt += 'width: ' + canvas.width + ', height: ' + canvas.height + '\n';
 				
