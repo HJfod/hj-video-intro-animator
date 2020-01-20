@@ -3,6 +3,11 @@
 <head>
 <meta charset='UTF-8'/>
 <title>intro animator</title>
+<style>
+body {
+	font-family: Arial;
+}
+</style>
 </head>
 <body>
 
@@ -70,6 +75,8 @@ let e = document.getElementById('div_events');
 document.getElementById('bgb').setAttribute('value',10);
 document.getElementById('bgt').setAttribute('value',0);
 document.getElementById('length').setAttribute('value',5);
+document.getElementById('ease_c').setAttribute('value',1.1);
+document.getElementById('ease_h').setAttribute('value',6);
 
 function textValue(d,l,f) {
 	let n = document.createElement('input'); n.setAttribute('maxlength',l); n.setAttribute('size',l); n.setAttribute('value',f);
