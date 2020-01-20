@@ -50,9 +50,11 @@ let s = { expand: .7, base: .03 };
 let e = [];
 let ease = { c: 1.05, h: 3 };	// curve, backholder
 let bg = { w: canvas.width/2, c: 'rgb(0,0,0)', bc: 10, time: 0 };
-let global = { glow_o: 0, frame_rate: 60, font: 'Roboto', debug: false, duration: 3, render: false, rendered: false, time: null, render_time: null };
+let global = { glow_o: 0, frame_rate: 60, font: 'Roboto', debug: false, duration: 3, render: false, rendered: false, time: 0, render_time: 0 };
 let rendered = [];
 let events = [];
+let dust_particles = [];
+let particle_settings = [100,10];	// amount, speed
 
 console.log(window.innerWidth + ',' + window.innerHeight);
 
@@ -74,6 +76,17 @@ function effects(){
 		switch (e[i]){
 			case 'flicker':
 				global.glow_o = Math.random()*.5;
+				break;
+			case 'dust':
+				for (let i = 0; i < dust_particles.length; i++){
+					dust_particles[i].x -= dust_particles[i].speed * Math.random()*dust_particles[i].speed;
+					dust_particles[i].y -= dust_particles[i].speed * Math.random()*dust_particles[i].speed;
+					ctx.beginPath();
+					ctx.fillStyle = '#f00';
+					ctx.arc(dust_particles[i].x,dust_particles[i].y,Math.random()*10,0,2 * Math.PI);
+					ctx.fill();
+					ctx.closePath();
+				}
 				break;
 		}
 	}
@@ -125,6 +138,14 @@ function init() {
 	global.duration = localStorage.getItem('length');
 	
 	e = localStorage.getItem('effects').split('||');
+	
+	for (let i = 0; i < e.length; i++){
+		if (e[i] == 'dust'){
+			for (let i = 0; i < particle_settings[0]; i++){
+				dust_particles[i] = { x: canvas.width, y: 0, speed: Math.random()*particle_settings[1]+particle_settings[1] };
+			}
+		}
+	}
 	
 	ease.c = localStorage.getItem('ease_c');
 	ease.h = localStorage.getItem('ease_h');
@@ -286,6 +307,9 @@ function loop() {
 				dtxt += 'ease: ' + rov(ease) + '\n';
 				dtxt += 'bg: ' + rov(bg) + '\n';
 				dtxt += 'global: ' + rov(global) + '\n';
+				dtxt += 'e: ' + e + '\n';
+				dtxt += 'particle_settings: ' + particle_settings + '\n';
+				dtxt += 'particles: ' + rov(particles) + '\n';
 				
 				dtxt += 'width: ' + canvas.width + ', height: ' + canvas.height + '\n';
 				
