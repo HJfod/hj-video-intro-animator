@@ -26,7 +26,9 @@ body {
 	<option value='Bebas Neue'>Bebas Neue</option>
 	<option value='Arial'>Arial</option>
 	<option value='Another Danger Demo'>Another Danger</option>
+	<option value='Custom'>Custom</option>
 </select>
+<input id='font-custom' />
 <br>
 
 <br>
@@ -52,7 +54,8 @@ body {
 
 <br>
 <text>Effects</text><br>
-<input type='checkbox' id='e_flc'>Flicker</input>
+<input type='checkbox' id='e_flc'>Flicker</input><br>
+<input type='checkbox' id='e_dst'>Dust particles</input>
 <br>
 
 <br>
@@ -71,12 +74,25 @@ body {
 
 let o = document.getElementById('div_text');
 let e = document.getElementById('div_events');
+let fnt = 'font';
+
+document.getElementById('font-custom').style.display = 'none';
 
 document.getElementById('bgb').setAttribute('value',10);
 document.getElementById('bgt').setAttribute('value',0);
-document.getElementById('length').setAttribute('value',5);
+document.getElementById('length').setAttribute('value',3);
 document.getElementById('ease_c').setAttribute('value',1.1);
 document.getElementById('ease_h').setAttribute('value',6);
+
+document.getElementById('font').addEventListener('change',() => {
+	if (document.getElementById('font').value === 'Custom'){
+		document.getElementById('font-custom').style.display = 'initial';
+		fnt = 'font-custom';
+	}else{
+		document.getElementById('font-custom').style.display = 'none';
+		fnt = 'font';
+	}
+});
 
 function textValue(d,l,f) {
 	let n = document.createElement('input'); n.setAttribute('maxlength',l); n.setAttribute('size',l); n.setAttribute('value',f);
@@ -141,7 +157,7 @@ function create(){
 		localStorage.setItem('input_event_'+i,dval);
 	}
 	
-	localStorage.setItem('font',document.getElementById('font').value);
+	localStorage.setItem('font',document.getElementById(fnt).value);
 	localStorage.setItem('render',document.getElementById('i_rnd').checked);
 	localStorage.setItem('debug',document.getElementById('i_dbg').checked);
 	localStorage.setItem('bg_bright',Number(document.getElementById('bgb').value));
@@ -152,6 +168,7 @@ function create(){
 	
 	let e_save = '';
 	if (document.getElementById('e_flc').checked){ e_save += 'flicker||'; }
+	if (document.getElementById('e_dst').checked){ e_save += 'dust||'; }
 	localStorage.setItem('effects',e_save);
 	
 	window.open('video-intro.html?length='+o.children.length+'&events='+e.children.length);
