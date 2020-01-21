@@ -81,7 +81,7 @@ function effects(){
 					particles[i].y += particles[i].speed;
 					if (particles[i].x < 0 || particles[i].y > canvas.height){
 						let q = [0,0];
-						if (Math.random() > .5){
+						if (Math.random() >= .5){
 							q[0] = Math.random()*canvas.width;
 							q[1] = 0;
 						}else{
