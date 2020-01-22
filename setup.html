@@ -70,7 +70,8 @@ body {
 </div>
 
 <br>
-<text>Length (in seconds)</text><input id='length' maxlength=3 size=3 />
+<text>Length (in seconds)</text><input id='length' maxlength=3 size=3 /><br>
+<text>Framerate (of finished video)</text><input id='fps' maxlength=3 size=3 />
 <br>
 
 <br>
@@ -80,6 +81,7 @@ body {
 
 <br>
 <button onclick='create();'>Create</button>
+<button onclick='window.open("https://github.com/HJfod/hj-video-intro-animator#help");'>Help</button>
 
 <script>
 
@@ -92,6 +94,8 @@ p.children[6].value = 100;
 p.children[7].value = 1;
 p.children[8].value = 3;
 p.children[9].value = .2;
+
+document.getElementById('fps').value = 60;
 
 document.getElementById('font-custom').style.display = 'none';
 p.style.display = 'none';
@@ -204,7 +208,9 @@ function create(){
 	if (document.getElementById('e_dst').checked){ e_save += 'dust||'; }
 	localStorage.setItem('effects',e_save);
 	
-	window.open('video-intro.html?length='+o.children.length+'&events='+e.children.length);
+	let fps = document.getElementById('fps').value;
+	
+	window.open('video-intro.html?length='+o.children.length+'&events='+e.children.length+'&fps='+fps);
 }
 
 </script>
