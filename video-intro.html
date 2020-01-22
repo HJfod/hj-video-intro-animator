@@ -28,8 +28,8 @@ button:hover {
 </head>
 <body>
 <canvas width='1920' height='1080' id='can' onclick=''></canvas>
-<video style='position: absolute; top: 0px; left: 0px;' id='v'></video>
-<button id='dl'>DOWNLOAD</button>
+<video style='position: absolute;' id='v'></video>
+<button id='dl' onclick='download();'>DOWNLOAD</button>
 <script>
 const canvas = document.getElementById('can');
 const ctx = canvas.getContext('2d');
@@ -50,7 +50,7 @@ let s = { expand: .7, base: .03 };
 let e = [];
 let ease = { c: 1.05, h: 3 };	// curve, backholder
 let bg = { w: canvas.width/2, c: 'rgb(0,0,0)', bc: 10, time: 0 };
-let global = { glow_o: 0, frame_rate: 60, font: 'Roboto', debug: false, duration: 3, render: false, rendered: false, time: 0, render_time: 0 };
+let global = { glow_o: 0, frame_rate: 60, fps: 60, font: 'Roboto', debug: false, duration: 3, render: false, rendered: false, time: 0, render_time: 0 };
 let rendered = [];
 let events = [];
 let particles = [];
@@ -86,11 +86,12 @@ function handleStop(event) {
 function stopRecording() {
 	mediaRecorder.stop();
 	console.log('Recorded Blobs: ', recordedBlobs);
+	global.rendered = 2;
 	video.controls = true;
 }
 
 function startRecording() {
-	stream = canvas.captureStream(global.frame_rate);
+	stream = canvas.captureStream(global.fps);
 	let options = { mimeType: 'video/webm' };
 	mediaRecorder = new MediaRecorder(stream, options);
 	mediaRecorder.onstop = handleStop;
@@ -164,6 +165,16 @@ function render() {
 	});
 }
 
+function download() {
+	let a = document.createElement('a');
+	a.style.display = 'none';
+	a.href = video.src;
+	a.download = 'test.webm';
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+}
+
 function handle_events(t) {
 	for (let i = 0; i < events.length; i++){
 		if (t != events[i].target){
@@ -221,6 +232,8 @@ function init() {
 		events[i] = { target: Number(t[0]), start_time: Number(t[1]), duration: Number(t[2]), amount: Number(t[3]) };
 	}
 	
+	global.fps = url.searchParams.get('fps');
+	
 	for (let i = 0; i < url.searchParams.get('length'); i++){
 		let t = localStorage.getItem('input_text_'+i).split('_sep_');
 		input_word[i] = [ t[0],Number(t[1]),Number(t[2]),Number(t[3]),Number(t[4]),Number(t[5]),Number(t[6]),Number(t[7]),Number(t[8]) ];
@@ -274,6 +287,7 @@ function loop() {
 		ctx.drawImage(rendered[frame],0,0);
 		if (frame == global.duration*global.frame_rate){
 			document.title = 'the cake is done 👌';
+			global.render_time = new Date().getTime() - global.time;
 			stopRecording();
 		}
 		
@@ -283,6 +297,8 @@ function loop() {
 		
 		ctx.fillStyle = '#000';
 		ctx.fillRect(0,0,canvas.width,canvas.height);
+		
+		/*
 		ctx.drawImage(rendered[frame],canvas.width/10,canvas.height/4,canvas.width/2,canvas.height/2);
 		ctx.fillStyle = '#444';
 		ctx.fillRect(canvas.width/10,canvas.height/2+canvas.height/4+20,canvas.width/2.5,4);
@@ -291,6 +307,11 @@ function loop() {
 		ctx.textAlign = 'left';
 		ctx.font = '20px Bebas Neue';
 		ctx.fillText(frame + '/' + global.duration*global.frame_rate,canvas.width/10+canvas.width/2.5+24,canvas.height/2+canvas.height/4+26);
+		*/
+		video.style.left = canvas.width/10 + 'px';
+		video.style.top = canvas.height/4 + 'px';
+		video.width = canvas.width/2;
+		video.height = canvas.height/2;
 		
 		ctx.textAlign = 'center';
 		ctx.fillStyle = '#fff';
@@ -303,7 +324,7 @@ function loop() {
 		ctx.font = '20px Bebas Neue';
 		ctx.fillText('Size: ' + canvas.width + 'x' + canvas.height,canvas.width/1.3,canvas.height/3+25);
 		ctx.fillText('Frames: ' + global.duration*global.frame_rate + ', Length: ' + global.duration + 's',canvas.width/1.3,canvas.height/3+50);
-		ctx.fillText('Framerate: ' + (global.frame_rate) + 'fps',canvas.width/1.3,canvas.height/3+75);
+		ctx.fillText('Framerate: ' + (global.fps) + 'fps',canvas.width/1.3,canvas.height/3+75);
 		ctx.fillText('Render time: ' + (global.render_time/1000) + 's',canvas.width/1.3,canvas.height/3+100);
 		
 		dl.style.display = 'initial';
@@ -401,7 +422,6 @@ function loop() {
 		render().then((value) => {
 			if (value){
 				//alert('Rendering complete.');
-				global.render_time = new Date().getTime() - global.time;
 				loop();
 			}else{
 				requestAnimationFrame(loop);
