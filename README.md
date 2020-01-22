@@ -15,23 +15,23 @@ Remove: Delete the last text item in the list.
 
 Text options in order:
 
-   Text: The text to display.
+* Text: The text to display.
 
-   Size: The size of the text.
+* Size: The size of the text.
 
-   Glow: The radius of glow on the text (0 for none)
+* Glow: The radius of glow on the text (0 for none)
 
-   Position: The vertical position of the text.
+* Position: The vertical position of the text.
 
-   Brightness: Brightness of the text (0-255)
+* Brightness: Brightness of the text (0-255)
 
-   Width: How much space should be between the letters.
+* Width: How much space should be between the letters.
 
-   A_time: The amount of time for an individual letter to fade in (0 for instant)
+* A_time: The amount of time for an individual letter to fade in (0 for instant)
 
-   A_inbetween: The amount of time between letters during fade in animation (0 for all together)
+* A_inbetween: The amount of time between letters during fade in animation (0 for all together)
 
-   A_offset: How many frames until fade in animation starts
+* A_offset: How many frames until fade in animation starts
 
 
 
@@ -53,33 +53,33 @@ Divider: The h value of the easing formula. Lower values = more extreme curves. 
 
 Event options in order:
 
-   Target: What text item the event should apply to (0 = top item in list, 1 = second item, etc.)
+* Target: What text item the event should apply to (0 = top item in list, 1 = second item, etc.)
 
-   Start_time: When the event should take place
+* Start_time: When the event should take place
 
-   Duration: How long the event should last for
+* Duration: How long the event should last for
 
-   Amount: How much in the Y-axis should the target text be moved in the event
+* Amount: How much in the Y-axis should the target text be moved in the event
 
 
 
 Effects in order:
 
-   Flicker: All glow on text randomly changes opacity.
+* Flicker: All glow on text randomly changes opacity.
 
-   Dust particles: Random particles fall from top-right to bottom-left of the screen.
+* Dust particles: Random particles fall from top-right to bottom-left of the screen.
 
 
 
 Particle options in order:
 
-   Amount: How many particles there should be
+* Amount: How many particles there should be
 
-   Speed: How fast the particles should move (Speed is randomly set for each particle based on this value)
+* Speed: How fast the particles should move (Speed is randomly set for each particle based on this value)
 
-   Size: How large the particles should be (Size is randomly set for each particle based on this value)
+* Size: How large the particles should be (Size is randomly set for each particle based on this value)
 
-   Alpha: What the opacity of the particles should be (Randomly set for each particle based on this value) (Ranges from 0-1)
+* Alpha: What the opacity of the particles should be (Randomly set for each particle based on this value) (Ranges from 0-1)
 
 
 
