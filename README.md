@@ -13,7 +13,7 @@ Remove: Delete the last text item in the list.
 
 
 
-Text options in order:
+## Text options in order:
 
 * Text: The text to display.
 
@@ -51,7 +51,7 @@ Divider: The h value of the easing formula. Lower values = more extreme curves. 
 
 
 
-Event options in order:
+## Event options in order:
 
 * Target: What text item the event should apply to (0 = top item in list, 1 = second item, etc.)
 
@@ -63,7 +63,7 @@ Event options in order:
 
 
 
-Effects in order:
+## Effects in order:
 
 * Flicker: All glow on text randomly changes opacity.
 
@@ -71,7 +71,7 @@ Effects in order:
 
 
 
-Particle options in order:
+## Particle options in order:
 
 * Amount: How many particles there should be
 
