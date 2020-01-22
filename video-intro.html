@@ -28,10 +28,12 @@ button:hover {
 </head>
 <body>
 <canvas width='1920' height='1080' id='can' onclick=''></canvas>
+<video style='position: absolute; top: 0px; left: 0px;' id='v'></video>
 <button id='dl'>DOWNLOAD</button>
 <script>
 const canvas = document.getElementById('can');
 const ctx = canvas.getContext('2d');
+const video = document.getElementById('v');
 
 canvas.style.backgroundColor = '#000000';
 
@@ -54,7 +56,49 @@ let events = [];
 let particles = [];
 let particle_settings = [100,1,3,.2];	// amount, speed, size, alpha
 
+/* recording */
+const mediaSource = new MediaSource();
+mediaSource.addEventListener('sourceopen', handleSourceOpen, false);
+
+let stream;
+let mediaRecorder;
+let recordedBlobs;
+let sourceBuffer;
+
 console.log(window.innerWidth + ',' + window.innerHeight);
+
+function handleSourceOpen(event) {
+	sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8"');
+}
+
+function handleDataAvailable(event) {
+	if (event.data && event.data.size > 0) {
+		recordedBlobs.push(event.data);
+	}
+}
+
+function handleStop(event) {
+	console.log('Recorder stopped: ', event);
+	const superBuffer = new Blob(recordedBlobs, {type: 'video/webm'});
+	video.src = window.URL.createObjectURL(superBuffer);
+}
+
+function stopRecording() {
+	mediaRecorder.stop();
+	console.log('Recorded Blobs: ', recordedBlobs);
+	video.controls = true;
+}
+
+function startRecording() {
+	stream = canvas.captureStream(global.frame_rate);
+	let options = { mimeType: 'video/webm' };
+	mediaRecorder = new MediaRecorder(stream, options);
+	mediaRecorder.onstop = handleStop;
+	mediaRecorder.ondataavailable = handleDataAvailable;
+	mediaRecorder.start(100);
+	recordedBlobs = [];
+	console.log('MediaRecorder started', mediaRecorder);
+}
 
 function alg(i,t) {
 	return text[t].w * i + text[t].w * (input_word[t][0].split('').length/2) + text[t].w/2 - input_word[t][0].split('').length * text[t].w;
@@ -107,13 +151,14 @@ function render() {
 		rendered[frame] = new Image();
 		rendered[frame].src = canvas.toDataURL();
 		if (frame == global.duration*global.frame_rate){
-			global.rendered = true;
+			global.rendered = 1;
 			frame = 0;
 			global.render = false;
-			document.title = 'the cake is done';
+			document.title = 'post-rendering';
+			startRecording();
 			resolve(true);
 		}else{
-			document.title = 'rendered ' + frame + '/' + global.duration*global.frame_rate;
+			document.title = 'pre-rendering ' + frame + '/' + global.duration*global.frame_rate;
 		}
 		resolve(false);
 	});
@@ -224,7 +269,15 @@ function loop() {
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight+1;
 	
-	if (global.rendered){
+	if (global.rendered == 1){
+		
+		ctx.drawImage(rendered[frame],0,0);
+		if (frame == global.duration*global.frame_rate){
+			document.title = 'the cake is done 👌';
+			stopRecording();
+		}
+		
+	}else if (global.rendered == 2){
 		
 		
 		
