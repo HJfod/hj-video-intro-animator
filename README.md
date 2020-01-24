@@ -1,5 +1,5 @@
 # hj-video-intro-animator
-Video intro/transition text animation tool I made for my videos made using JS.
+Video intro/transition text animation tool I made for my videos using JS.
 
 # Usage
 
