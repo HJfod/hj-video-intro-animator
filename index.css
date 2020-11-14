@@ -2,19 +2,32 @@
     --c-bg:             #222;
     --c-head:           #444;
     --c-text:           #fff;
-    --c-border:         #111;
+    --c-border:         #666;
     --c-move:           rgba(125, 150, 255, .5);
+    --c-button:         #777;
+    --c-button-hover:   #aaa;
+    --c-canvas:         #000;
+    --c-light:          #333;
+    --c-lighter:        #444;
+    --c-lightest:       #555;
 
     --s-p-head:         20px;
     --s-border:         1px;
     --s-dragger:        6px;
     --s-corner:         10px;
     --s-remove:         40px;
+    --s-pad:            10px;
+
+    --trans:            .1s;
 }
 
 @font-face {
     font-family: 'Open Sans';
     src: url(fonts/OpenSans.ttf);
+}
+
+* {
+    outline: none;
 }
 
 body {
@@ -59,6 +72,8 @@ p-head {
     user-zoom: none;
     width: 100%;
     font-size: calc( var(--s-p-head) / 1.5 );
+    border: var(--s-border) solid var(--c-border);
+    border-style: inset;
 }
 
 a-dragger {
@@ -89,8 +104,11 @@ p-cont {
     border: var(--s-border) solid var(--c-border);
     border-style: inset;
     display: block;
-    width: 100%;
-    height: calc( 100% - var(--s-p-head) );
+    width: calc( 100% - var(--s-pad) * 2 );
+    height: calc( 100% - var(--s-p-head) - var(--s-pad) * 2 );
+    padding: var(--s-pad);
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 re-pos {
@@ -108,4 +126,94 @@ re-pos:hover {
 
 p-mover + main a-panel:hover {
     background: var(--c-move);
+}
+
+button {
+    background-color: var(--c-button);
+    border: none;
+    padding: calc( var(--s-pad) / 1.5 );
+    padding-left: var(--s-pad);
+    padding-right: var(--s-pad);
+    color: var(--c-text);
+    font-family: "Open Sans";
+    transition-duration: var(--trans);
+}
+
+button:hover {
+    background-color: var(--c-button-hover);
+}
+
+canvas {
+    background-color: var(--c-canvas);
+}
+
+div {
+    display: flex;
+    flex-direction: column;
+    transition-duration: var(--trans);
+}
+
+a-text {
+    margin-top: var(--s-pad);
+    display: block;
+    padding: var(--s-pad);
+    width: calc( 100% - var(--s-pad) * 4 );
+    background: var(--c-light);
+    border-radius: var(--s-corner);
+    transition-duration: var(--trans);
+}
+
+a-text div * {
+    margin-top: var(--s-pad);
+    margin-right: var(--s-pad);
+}
+
+a-text a-title {
+    margin-top: 0px;
+    display: block;
+    padding: var(--s-pad);
+    width: calc( 100% - var(--s-pad) * 8 );
+    background: var(--c-light);
+    border-radius: var(--s-corner);
+    transition-duration: var(--trans);
+    user-select: none;
+    cursor: pointer;
+}
+
+a-text a-title:hover {
+    background-color: var(--c-lighter);
+}
+
+input {
+    background-color: var(--c-lighter);
+    transition-duration: var(--trans);
+    padding: var(--s-pad);
+    border: none;
+    border-radius: var(--s-corner);
+    color: var(--c-text);
+    font-family: 'Open Sans';
+}
+
+input:hover {
+    background-color: var(--c-lightest);
+}
+
+input::placeholder {
+    color: var(--c-text);
+    opacity: 0.5;
+}
+
+.close-button {
+    background-color: rgba(0,0,0,0);
+    border-radius: 100%;
+    float: right;
+    margin-right: 0px;
+}
+
+.close-button:hover {
+    background-color: var(--c-button);
+}
+
+input.small {
+    width: 20px;
 }

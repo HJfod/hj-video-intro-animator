@@ -6,6 +6,7 @@
         <link rel="stylesheet" href="index.css">
         <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'">
         <script src="main.js" defer></script>
+        <script src="text.js" defer></script>
     </head>
     <body>
         <main>
@@ -16,13 +17,23 @@
                     </a-panel>
                     <a-dragger></a-dragger>
                     <a-panel name="Text">
-                        <text>ye</text>
+                        <button onclick="addText()">New</button>
+                        <br>
+                        <div id="div-texts"></div>
                     </a-panel>
                 </a-cont>
                 <a-dragger></a-dragger>
-                <a-panel name="Canvas">
-                    <canvas></canvas>
-                </a-panel>
+                <a-cont dir="column">
+                    <a-panel name="Canvas" size=2>
+                        <canvas></canvas>
+                    </a-panel>
+                    <a-dragger></a-dragger>
+                    <a-panel name="Events">
+                        <button>Add event</button>
+                        <br>
+                        <div id="div-events"></div>
+                    </a-panel>
+                </a-cont>
             </a-cont>
         </main>
     </body>
