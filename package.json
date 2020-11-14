@@ -1,0 +1,22 @@
+{
+  "name": "hj-video-intro-animator",
+  "version": "1.0.0",
+  "description": "Video intro/transition text animation tool I made for my videos using JS.",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HJfod/hj-video-intro-animator.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HJfod/hj-video-intro-animator/issues"
+  },
+  "homepage": "https://github.com/HJfod/hj-video-intro-animator#readme",
+  "dependencies": {
+    "electron": "^10.1.5"
+  }
+}

@@ -1,0 +1,111 @@
+:root {
+    --c-bg:             #222;
+    --c-head:           #444;
+    --c-text:           #fff;
+    --c-border:         #111;
+    --c-move:           rgba(125, 150, 255, .5);
+
+    --s-p-head:         20px;
+    --s-border:         1px;
+    --s-dragger:        6px;
+    --s-corner:         10px;
+    --s-remove:         40px;
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url(fonts/OpenSans.ttf);
+}
+
+body {
+    margin: 0px;
+    padding: 0px;
+    background-color: var(--c-bg);
+    font-family: 'Open Sans';
+    color: var(--c-text);
+    overflow: hidden;
+}
+
+main {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+a-panel {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--c-bg);
+}
+
+a-cont {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+p-head {
+    display: flex;
+    background: var(--c-head);
+    height: var(--s-p-head);
+    align-content: center;
+    justify-content: center;
+    user-select: none;
+    user-zoom: none;
+    width: 100%;
+    font-size: calc( var(--s-p-head) / 1.5 );
+}
+
+a-dragger {
+    display: block;
+    background: #f00;
+    padding: var(--s-dragger);
+    margin: calc( 0px - var(--s-dragger) );
+    opacity: 0;
+    z-index: 5;
+    user-select: none;
+}
+
+p-mover {
+    position: absolute;
+    opacity: 0;
+    width: 100px;
+    height: 100px;
+    margin-left: -50px;
+    margin-top: -50px;
+    background: var(--c-move);
+    border-radius: var(--s-corner);
+    pointer-events: none;
+    z-index: 10;
+}
+
+p-cont {
+    display: block;
+    border: var(--s-border) solid var(--c-border);
+    border-style: inset;
+    display: block;
+    width: 100%;
+    height: calc( 100% - var(--s-p-head) );
+}
+
+re-pos {
+    position: absolute;
+    width: var(--s-remove);
+    height: var(--s-remove);
+    background: var(--c-move);
+    z-index: 20;
+    opacity: 0.2;
+}
+
+re-pos:hover {
+    opacity: 1;
+}
+
+p-mover + main a-panel:hover {
+    background: var(--c-move);
+}
