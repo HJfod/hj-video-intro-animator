@@ -55,7 +55,15 @@ class table {
 }
 
 const global = {
-    panelToSwitch: null
+    panelToSwitch: null,
+    defaults: {
+        text: {
+            size: 20,
+            kern: 14,
+            pos: 0
+        }
+    },
+    fonts: []
 }
 
 function swapElements(el1, el2) {
@@ -159,6 +167,35 @@ class Container extends HTMLElement {
 class Text extends HTMLElement {
     constructor() { super(); }
 
+    addInput(text, vari, func) {
+        this.tab.put(text);
+        const siz = document.createElement("input");
+        const siz_t = document.createElement("input");
+        siz_t.setAttribute("size", "4");
+        siz.setAttribute("type", "range");
+        siz.addEventListener("input", e => { siz_t.value = siz.value; func(); });
+        siz_t.addEventListener("input", e => { siz_t.value = siz.value; func(); });
+        siz.value = siz_t.value = vari;
+        siz.setAttribute("a-e", text.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]);
+        this.tab.put(siz);
+        this.tab.put(siz_t);
+    }
+
+    addSelect(text, opt, vari, func) {
+        this.tab.put(text);
+        const sel = document.createElement("select");
+        opt.forEach(o => {
+            const op = document.createElement("option");
+            op.innerHTML = o;
+            sel.append(op);
+        });
+        sel.selectedIndex = vari;
+        sel.addEventListener("change", e => func());
+        sel.setAttribute("a-e", text.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]);
+        this.tab.put(sel);
+        this.tab.put("");
+    }
+
     connectedCallback() {
         if ($("div", this)) return;
         const con = document.createElement("div");
@@ -174,32 +211,19 @@ class Text extends HTMLElement {
             if (inp.value == "")
                 hea.innerHTML = "&lt;empty text&gt;";
             else hea.innerHTML = inp.value;
+            draw();
         });
         con.appendChild(inp);
+        inp.setAttribute("a-e", "text");
 
-        const tab = new table(3, 2);
+        this.tab = new table(3, 4);
         
-        tab.put("Size:");
-        const siz = document.createElement("input");
-        const siz_t = document.createElement("input");
-        siz_t.classList.add("small");
-        siz.setAttribute("type", "range");
-        siz.addEventListener("input", e => siz_t.value = siz.value);
-        siz_t.addEventListener("input", e => siz.value = siz_t.value);
-        tab.put(siz);
-        tab.put(siz_t);
-        
-        tab.put("Spacing:");
-        const spa = document.createElement("input");
-        const spa_t = document.createElement("input");
-        spa_t.classList.add("small");
-        spa.setAttribute("type", "range");
-        spa.addEventListener("input", e => spa_t.value = spa.value);
-        spa_t.addEventListener("input", e => spa.value = spa_t.value);
-        tab.put(spa);
-        tab.put(spa_t);
+        this.addInput("Size:", global.defaults.text.size, () => draw());
+        this.addInput("Spacing:", global.defaults.text.kern, () => draw());
+        this.addInput("Position:", global.defaults.text.pos, () => draw());
+        this.addSelect("Font:", global.fonts, 0, () => draw());
 
-        con.appendChild(tab.table());
+        con.appendChild(this.tab.table());
 
         const clo = document.createElement("button");
         clo.innerHTML = "╳";
@@ -212,10 +236,20 @@ class Text extends HTMLElement {
     }
 }
 
+class Titlebar extends HTMLElement {
+    constructor() { super(); }
+
+    connectedCallback() {
+        const content = this.innerHTML;
+        this.innerHTML = `<text>${content}</text><button onclick="window.close();">╳</button>`;
+    }
+}
+
 customElements.define("a-panel", Panel);
 customElements.define("a-dragger", Dragger);
 customElements.define("a-cont", Container);
 customElements.define("a-text", Text);
+customElements.define("a-titlebar", Titlebar);
 
 document.addEventListener("mouseup", e => { if ($("p-mover")) {
     /*if ($("re-pos:hover")) {

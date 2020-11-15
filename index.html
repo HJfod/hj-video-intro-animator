@@ -10,28 +10,31 @@
     </head>
     <body>
         <main>
+            <a-titlebar>Video intro animator</a-titlebar>
             <a-cont dir="row">
                 <a-cont dir="column">
-                    <a-panel name="Controls">
-                        <text>ye</text>
-                    </a-panel>
-                    <a-dragger></a-dragger>
                     <a-panel name="Text">
                         <button onclick="addText()">New</button>
                         <br>
                         <div id="div-texts"></div>
-                    </a-panel>
-                </a-cont>
-                <a-dragger></a-dragger>
-                <a-cont dir="column">
-                    <a-panel name="Canvas" size=2>
-                        <canvas></canvas>
                     </a-panel>
                     <a-dragger></a-dragger>
                     <a-panel name="Events">
                         <button>Add event</button>
                         <br>
                         <div id="div-events"></div>
+                    </a-panel>
+                </a-cont>
+                <a-dragger></a-dragger>
+                <a-cont dir="column">
+                    <a-panel name="Canvas" size=2>
+                        <canvas id="anim"></canvas>
+                    </a-panel>
+                    <a-dragger></a-dragger>
+                    <a-panel name="File">
+                        <button>Load preset</button>
+                        <button>Save preset</button>
+                        <button onclick="window.open('font.html')">Manage fonts</button>
                     </a-panel>
                 </a-cont>
             </a-cont>
