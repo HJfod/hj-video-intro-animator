@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Video intro animator</title>
+        <title>Fonts</title>
         <meta charset='UTF-8'/>
         <link rel="stylesheet" href="index.css">
         <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'">
@@ -10,16 +10,20 @@
     </head>
     <body>
         <main>
-            <a-titlebar>Video intro animator</a-titlebar>
+            <a-titlebar>Fonts</a-titlebar>
             <a-cont dir="row">
                 <a-panel name="In use">
-                    <select size=10 id="font-used" a-sel="global.fonts"></select>
-                    <br>
-                    <button onclick="removeSelectedFont()"></button>
+                    <f-sel id="font-used">
+                        <f-emp>Loading fonts...</f-emp>
+                    </f-sel>
                 </a-panel>
                 <a-dragger></a-dragger>
                 <a-panel name="Available">
-                    <select size=10 id="font-used" a-sel="installedFonts"></select>
+                    <f-sel id="font-available">
+                        <f-emp>Loading fonts...</f-emp>
+                    </f-sel>
+                    <br>
+                    <input placeholder="Search font..." oninput="searchSelect($('#font-available'), this.value)">
                 </a-panel>
             </a-cont>
         </main>

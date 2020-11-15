@@ -18,23 +18,17 @@
                         <br>
                         <div id="div-texts"></div>
                     </a-panel>
-                    <a-dragger></a-dragger>
-                    <a-panel name="Events">
-                        <button>Add event</button>
-                        <br>
-                        <div id="div-events"></div>
-                    </a-panel>
                 </a-cont>
                 <a-dragger></a-dragger>
                 <a-cont dir="column">
                     <a-panel name="Canvas" size=2>
-                        <canvas id="anim"></canvas>
+                        <canvas id="anim" width=1920 height=1080></canvas>
                     </a-panel>
                     <a-dragger></a-dragger>
                     <a-panel name="File">
                         <button>Load preset</button>
                         <button>Save preset</button>
-                        <button onclick="window.open('font.html')">Manage fonts</button>
+                        <button onclick='ipcSend(`{ "action": "open", "window": "font.html" }`)'>Manage fonts</button>
                     </a-panel>
                 </a-cont>
             </a-cont>

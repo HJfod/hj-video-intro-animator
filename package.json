@@ -18,6 +18,7 @@
   "homepage": "https://github.com/HJfod/hj-video-intro-animator#readme",
   "dependencies": {
     "electron": "^10.1.5",
+    "fontkit": "^1.8.1",
     "get-system-fonts": "^2.0.2"
   }
 }

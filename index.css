@@ -20,6 +20,8 @@
     --s-remove:         40px;
     --s-pad:            10px;
     --s-titlebar:       25px;
+    --s-select:         300px;
+    --s-option:         30px;
 
     --trans:            .1s;
 }
@@ -229,6 +231,7 @@ a-titlebar {
 	-webkit-user-select: none;
     -webkit-app-region: drag;
     height: var(--s-titlebar);
+    min-height: var(--s-titlebar);
     width: 100%;
     font-size: calc( var(--s-titlebar) / 2 );
     display: flex;
@@ -253,4 +256,99 @@ a-titlebar button {
 
 a-titlebar button:hover {
     background: var(--c-hover);
+}
+
+f-sel {
+    margin-top: var(--s-pad);
+    display: block;
+    padding: calc( var(--s-pad) );
+    background: var(--c-light);
+    border-radius: var(--s-corner);
+    transition-duration: var(--trans);
+    height: var(--s-select);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+f-opt {
+    display: flex;
+    flex-direction: row;
+    padding: calc( var(--s-pad) );
+    height: var(--s-option);
+    border-radius: var(--s-corner);
+    background: rgba(0,0,0,0);
+    cursor: pointer;
+    align-items: center;
+    justify-content: space-between;
+}
+
+f-emp {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    color: rgba(255, 255, 255, .4);
+    align-items: center;
+    justify-content: center;
+}
+
+f-opt:hover {
+    background: var(--c-lighter);
+}
+
+f-opt button {
+    float: right;
+    align-self: flex-end;
+    background: rgba(0,0,0,0);
+    width: var(--s-option);
+    height: var(--s-option);
+    padding: 0px;
+    border-radius: 100%;
+    opacity: 0;
+    font-size: calc( var(--s-option) / 1.5 );
+}
+
+f-opt:hover button {
+    opacity: 1;
+}
+
+f-opt button:hover {
+    background: var(--c-hover);
+}
+
+a-events {
+    margin-top: calc( var(--s-pad) * 4 );
+    display: block;
+    padding: calc( var(--s-pad) / 2 );
+    width: calc( 100% - var(--s-pad) );
+    background: var(--c-bg);
+    border-radius: var(--s-corner);
+    transition-duration: var(--trans);
+}
+
+a-events a-title {
+    margin-top: 0px;
+    width: calc( 100% - var(--s-pad) * 7 );
+    display: inline-block;
+    padding-left: var(--s-pad);
+}
+
+a-events button {
+    display: block;
+    background: rgba(0,0,0,0);
+    margin-top: 0px;
+    float: right;
+    opacity: .5;
+    padding: 0px;
+    font-size: calc( var(--s-pad) * 2 );
+}
+
+a-events button:hover {
+    opacity: 1;
+    background: rgba(0,0,0,0);
+}
+
+#div-texts {
+    height: 90%;
+    overflow-x: hidden;
+    overflow-y: auto;
 }

@@ -103,6 +103,17 @@ function swapElements(el1, el2) {
     prev2.after(el1);
 }
 
+Array.prototype.remove = function() {
+    var what, a = arguments, L = a.length, ax;
+    while (L && this.length) {
+        what = a[--L];
+        while ((ax = this.indexOf(what)) !== -1) {
+            this.splice(ax, 1);
+        }
+    }
+    return this;
+};
+
 class Panel extends HTMLElement {
     constructor() { super(); }
 
@@ -167,14 +178,16 @@ class Container extends HTMLElement {
 class Text extends HTMLElement {
     constructor() { super(); }
 
-    addInput(text, vari, func) {
+    addInput(text, vari, func, range = [0, 100]) {
         this.tab.put(text);
         const siz = document.createElement("input");
         const siz_t = document.createElement("input");
         siz_t.setAttribute("size", "4");
         siz.setAttribute("type", "range");
+        siz.setAttribute("min", range[0]);
+        siz.setAttribute("max", range[1]);
         siz.addEventListener("input", e => { siz_t.value = siz.value; func(); });
-        siz_t.addEventListener("input", e => { siz_t.value = siz.value; func(); });
+        siz_t.addEventListener("input", e => { siz.value = siz_t.value; func(); });
         siz.value = siz_t.value = vari;
         siz.setAttribute("a-e", text.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]);
         this.tab.put(siz);
@@ -190,6 +203,16 @@ class Text extends HTMLElement {
             sel.append(op);
         });
         sel.selectedIndex = vari;
+        sel.addEventListener("change", e => func());
+        sel.setAttribute("a-e", text.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]);
+        this.tab.put(sel);
+        this.tab.put("");
+    }
+    
+    addType(text, defa, func) {
+        this.tab.put(text);
+        const sel = document.createElement("input");
+        sel.value = defa;
         sel.addEventListener("change", e => func());
         sel.setAttribute("a-e", text.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]);
         this.tab.put(sel);
@@ -216,19 +239,30 @@ class Text extends HTMLElement {
         con.appendChild(inp);
         inp.setAttribute("a-e", "text");
 
-        this.tab = new table(3, 4);
+        this.tab = new table(3, 8);
         
-        this.addInput("Size:", global.defaults.text.size, () => draw());
-        this.addInput("Spacing:", global.defaults.text.kern, () => draw());
-        this.addInput("Position:", global.defaults.text.pos, () => draw());
+        this.addInput("Size:", global.defaults.text.size, () => draw(), [0, 256]);
+        this.addInput("Spacing:", global.defaults.text.kern, () => draw(), [0, 320]);
+        this.addInput("Position X:", global.defaults.text.pos, () => draw(), [ -1920, 1920 ]);
+        this.addInput("Position Y:", global.defaults.text.pos, () => draw(), [ -1080, 1080 ]);
+        this.addType("Color:", "#ffffff", () => draw());
         this.addSelect("Font:", global.fonts, 0, () => draw());
 
         con.appendChild(this.tab.table());
 
+        const ani = document.createElement("a-events");
+        ani.innerHTML = "<a-title>Animations</a-title>";
+
+        const anc = document.createElement("button");
+        anc.innerHTML = "+";
+        ani.append(anc);
+
+        con.append(ani);
+
         const clo = document.createElement("button");
         clo.innerHTML = "╳";
         clo.classList.add("close-button");
-        clo.addEventListener("click", e => this.remove());
+        clo.addEventListener("click", e => { this.remove(); draw(); });
         this.appendChild(clo);
 
         this.append(hea);
@@ -244,6 +278,36 @@ class Titlebar extends HTMLElement {
         this.innerHTML = `<text>${content}</text><button onclick="window.close();">╳</button>`;
     }
 }
+
+function ipcSend(msg) {
+    if (typeof msg === "string") msg = JSON.parse(msg);
+    window.postMessage({
+        protocol: "to-app",
+        data: msg
+    });
+}
+
+const ipc = {
+    test: args => {
+        console.log(args);
+    }
+};
+
+function searchSelect(sel, srh) {
+    Array.from(sel.children).forEach(opt => {
+        if ($("text", opt).innerHTML.toLowerCase().trim().startsWith(srh.toLowerCase().trim()))
+            opt.style.display = "flex";
+        else opt.style.display = "none";
+    });
+}
+
+window.addEventListener("message", event => {
+	const message = event.data;
+    if (message.protocol === "from-app") {
+        let args = JSON.parse(message.data);
+        ipc[args.action](args);
+    }
+});
 
 customElements.define("a-panel", Panel);
 customElements.define("a-dragger", Dragger);
