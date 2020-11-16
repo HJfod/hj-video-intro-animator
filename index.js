@@ -27,7 +27,7 @@ const global = {
     w_size: null
 }
 
-const s = global.load("window-size");
+let s = global.load("window-size");
 if (!s) s = [ 800, 600 ];
 const brow = {
     frame: false,

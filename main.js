@@ -1,25 +1,23 @@
+const $$ = {
+    all: (name, par = document) => {
+        return par.querySelectorAll(name);
+    },
+    p: elem => {
+        return elem.getBoundingClientRect();
+    },
+    css: elem => {
+        return window.getComputedStyle(elem);
+    },
+    v: v => {
+        return getComputedStyle(document.documentElement).getPropertyValue(v);
+    },
+    get: css => {
+        return parseInt(css.match(/\d+/)[0]);
+    }
+};
+
 function $(name, par = document) {
     return par.querySelector(name);
-}
-
-function $a(name, par = document) {
-    return par.querySelectorAll(name);
-}
-
-function $p(elem) {
-    return elem.getBoundingClientRect();
-}
-
-function $css(elem) {
-    return window.getComputedStyle(elem);
-}
-
-function $v(v) {
-    return getComputedStyle(document.documentElement).getPropertyValue(v);
-}
-
-function $get(css) {
-    return parseInt(css.match(/\d+/)[0]);
 }
 
 class table {
@@ -40,13 +38,17 @@ class table {
             e.innerHTML = elem;
         }
 
-        [...$a("tr", this._table)].reverse().forEach(td => {
-            [...$a("td", td)].reverse().forEach(tr => {
+        [...$$.all("tr", this._table)].reverse().forEach(td => {
+            [...$$.all("td", td)].reverse().forEach(tr => {
                 if (tr.innerHTML == "") {
                     tr.append(e); return;
                 }
             });
         });
+    }
+
+    puts(list) {
+        list.forEach(i => this.put(i));
     }
 
     table() {
@@ -60,41 +62,54 @@ const global = {
         text: {
             size: 20,
             kern: 14,
-            pos: 0
+            pos: 0,
+            opacity: 100
+        },
+        video: {
+            fps: 60,
+            length: 5
         }
+    },
+    frame: {
+        current: 0,
+        fps: 0,
+        max: 0
     },
     fonts: []
 }
+
+global.frame.fps = global.defaults.video.fps;
+global.frame.max = global.defaults.video.length * global.defaults.video.fps;
 
 function swapElements(el1, el2) {
     const prev1 = el1.previousSibling;
     const prev2 = el2.previousSibling;
     
     const sz1 = {
-        w: $p(el1).width,
-        h: $p(el1).height,
-        l: $p(el1).left,
-        t: $p(el1).top
+        w: $$.p(el1).width,
+        h: $$.p(el1).height,
+        l: $$.p(el1).left,
+        t: $$.p(el1).top
     }
     const sz2 = {
-        w: $p(el2).width,
-        h: $p(el2).height,
-        l: $p(el2).left,
-        t: $p(el2).top
+        w: $$.p(el2).width,
+        h: $$.p(el2).height,
+        l: $$.p(el2).left,
+        t: $$.p(el2).top
     }
 
-    if (sz2.t + sz2.h == $p($("main")).height)
+    if (sz2.t + sz2.h == $$.p($("main")).height)
         el1.style.height = "100%";
     else el1.style.height = sz2.h + "px";
-    if (sz1.t + sz1.h == $p($("main")).height)
+    if (sz1.t + sz1.h == $$.p($("main")).height)
         el2.style.height = "100%";
     else el2.style.height = sz1.h + "px";
 
     /*
-    if (sz2.l + sz2.w == $p($("main")).width)
+    if (sz2.l + sz2.w == $$.p($("main")).width)
         el1.style.width = "100%";
     else el1.style.width = sz2.w + "px";
-    if (sz1.l + sz1.w == $p($("main")).width)
+    if (sz1.l + sz1.w == $$.p($("main")).width)
         el2.style.width = "100%";
     else el2.style.width = sz1.w + "px";
     */
@@ -104,7 +119,7 @@ function swapElements(el1, el2) {
 }
 
 Array.prototype.remove = function() {
-    var what, a = arguments, L = a.length, ax;
+    let what, a = arguments, L = a.length, ax;
     while (L && this.length) {
         what = a[--L];
         while ((ax = this.indexOf(what)) !== -1) {
@@ -113,6 +128,15 @@ Array.prototype.remove = function() {
     }
     return this;
 };
+
+fromArray = (obj, arr) => {
+    arr.forEach(item => {
+        const o = document.createElement("option");
+        o.innerHTML = item;
+        obj.append(o);
+    });
+    return obj;
+}
 
 class Panel extends HTMLElement {
     constructor() { super(); }
@@ -157,10 +181,10 @@ class Dragger extends HTMLElement {
         this.addEventListener("mousedown", e => { m = true; oldc = document.body.style.cursor; });
         document.addEventListener("mousemove", e => {
             if (m) {
-                if ($css(this).cursor == "ew-resize")
+                if ($$.css(this).cursor == "ew-resize")
                     this.previousElementSibling.style.width = e.pageX + "px";
                 else this.previousElementSibling.style.height = e.pageY + "px";
-                document.body.style.cursor = $css(this).cursor;
+                document.body.style.cursor = $$.css(this).cursor;
             }
         });
         document.addEventListener("mouseup", e => { m = false; document.body.style.cursor = oldc; });
@@ -194,7 +218,23 @@ class Text extends HTMLElement {
         this.tab.put(siz_t);
     }
 
-    addSelect(text, opt, vari, func) {
+    addInputS(table, text, vari, func, range = [0, 100]) {
+        table.put(text);
+        const siz = document.createElement("input");
+        const siz_t = document.createElement("input");
+        siz_t.setAttribute("size", "4");
+        siz.setAttribute("type", "range");
+        siz.setAttribute("min", range[0]);
+        siz.setAttribute("max", range[1]);
+        siz.addEventListener("input", e => { siz_t.value = siz.value; func(); });
+        siz_t.addEventListener("input", e => { siz.value = siz_t.value; func(); });
+        siz.value = siz_t.value = vari;
+        siz.setAttribute("a-e", text.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]);
+        table.put(siz);
+        table.put(siz_t);
+    }
+
+    addSelect(text, opt, vari, func, extra = null) {
         this.tab.put(text);
         const sel = document.createElement("select");
         opt.forEach(o => {
@@ -206,7 +246,17 @@ class Text extends HTMLElement {
         sel.addEventListener("change", e => func());
         sel.setAttribute("a-e", text.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]);
         this.tab.put(sel);
-        this.tab.put("");
+        if (!extra)
+            this.tab.put("");
+        else {
+            const ex = document.createElement(extra.is);
+            ex.innerHTML = extra.text;
+            ex.addEventListener("click", () => extra.click());
+            extra.attr.forEach(a => {
+                ex.setAttribute(a[0], a[1]);
+            });
+            this.tab.put(ex);
+        }
     }
     
     addType(text, defa, func) {
@@ -217,6 +267,45 @@ class Text extends HTMLElement {
         sel.setAttribute("a-e", text.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]);
         this.tab.put(sel);
         this.tab.put("");
+    }
+
+    addAnimationControls() {
+        const div = document.createElement("div");
+        const tab = new table(4, 8);
+        const sel = document.createElement("select");
+        fromArray(sel, [
+            "Size",
+            "Spacing",
+            "Opacity"
+        ]);
+
+        sel.addEventListener("change", e => {
+            $("a-title", div.parentElement).innerHTML = sel.value;
+        });
+
+        tab.puts([ "Affect:", sel, "", "" ]);
+
+        const ord = document.createElement("select");
+        fromArray(ord, [ "Whole text", "Each word", "Each character" ]);
+        tab.puts([ "Modify:", ord, "", "" ]);
+
+        const ease = document.createElement("select");
+        fromArray(ease, [ "Linear", "Sine", "Exponental", "Exponental In", "Exponental Out" ]);
+        tab.puts([ "Easing:", ease, "", "" ]);
+
+        this.addInputS(tab, "Start:", 0, () => draw(), [ 0, global.frame.max ]);
+        const setStartFrame = document.createElement("button");
+        setStartFrame.innerHTML = "Set";
+        setStartFrame.addEventListener("click", e => {
+            $("[a-e='start']").value = global.frame.current;
+            const ev = document.createEvent("InputEvent");
+            $("[a-e='start']").dispatchEvent(ev);
+        });
+        tab.put(setStartFrame);
+
+        div.append(tab.table());
+        div.style.display = "none";
+        return div;
     }
 
     connectedCallback() {
@@ -243,19 +332,42 @@ class Text extends HTMLElement {
         
         this.addInput("Size:", global.defaults.text.size, () => draw(), [0, 256]);
         this.addInput("Spacing:", global.defaults.text.kern, () => draw(), [0, 320]);
+        this.addInput("Opacity:", global.defaults.text.opacity, () => draw(), [0, 100]);
         this.addInput("Position X:", global.defaults.text.pos, () => draw(), [ -1920, 1920 ]);
         this.addInput("Position Y:", global.defaults.text.pos, () => draw(), [ -1080, 1080 ]);
         this.addType("Color:", "#ffffff", () => draw());
-        this.addSelect("Font:", global.fonts, 0, () => draw());
+        this.addSelect("Font:", global.fonts, 0, () => draw(), { is: "button", text: "More", click: () => {
+            ipcSend(`{ "action": "open", "window": "font.html" }`);
+        }, attr: [ [ "class", "b-light" ] ] });
 
         con.appendChild(this.tab.table());
 
         const ani = document.createElement("a-events");
-        ani.innerHTML = "<a-title>Animations</a-title>";
+        const anit = document.createElement("a-title");
+        anit.innerHTML = "Animations";
+        const anid = document.createElement("div");
+        anid.style.display = "none";
+
+        anit.addEventListener("click", e => anid.style.display = anid.style.display == "initial" ? "none" : "initial");
 
         const anc = document.createElement("button");
         anc.innerHTML = "+";
+        anc.addEventListener("click", e => {
+            const nani = document.createElement("a-event");
+            nani.innerHTML =
+            "<a-title onclick='$(`div`, this.parentElement).style.display ="
+            +"$(`div`, this.parentElement).style.display == `initial` ? `none` : `initial`'>&lt;New animation&gt;</a-title>";
+            const nanb = document.createElement("button");
+            nanb.innerHTML = "╳";
+            nanb.addEventListener("click", e => { nani.remove(); draw(); });
+            nani.append(nanb);
+            nani.append(this.addAnimationControls());
+            anid.style.display = "initial";
+            anid.append(nani);
+        });
+        ani.append(anit);
         ani.append(anc);
+        ani.append(anid);
 
         con.append(ani);
 
@@ -343,7 +455,7 @@ document.addEventListener("mouseup", e => { if ($("p-mover")) {
     } else //*/
     swapElements($("main a-panel:hover"), global.panelToSwitch);
     $("p-mover").remove();
-    $a("re-pos").forEach(r => r.remove());
+    $$.all("re-pos").forEach(r => r.remove());
 } });
 document.addEventListener("mousemove", e => { if ($("p-mover")) {
     $("p-mover").style.left = e.pageX + "px";
@@ -352,16 +464,16 @@ document.addEventListener("mousemove", e => { if ($("p-mover")) {
 
     /*
     if (!$("main a-panel:hover re-pos")) {
-        $a("re-pos").forEach(r => r.remove());
+        $$.all("re-pos").forEach(r => r.remove());
         if ($("main a-panel:hover"))
             for (i = 0; i < 4; i++) {
                 const p = $("main a-panel:hover");
                 const r = document.createElement("re-pos");
                 r.id = i;
-                r.style.left = ($p(p).left + (i > 2 ? $p(p).width - $get($v("--s-remove")) : 0)) + "px";
-                r.style.top = ($p(p).top + (i == 1 ? $p(p).height - $get($v("--s-remove")) : 0)) + "px";
-                if (i <= 1) r.style.width = $p(p).width + "px";
-                else r.style.height = $p(p).height + "px";
+                r.style.left = ($$.p(p).left + (i > 2 ? $$.p(p).width - $$.get($$.v("--s-remove")) : 0)) + "px";
+                r.style.top = ($$.p(p).top + (i == 1 ? $$.p(p).height - $$.get($.v("--s-remove")) : 0)) + "px";
+                if (i <= 1) r.style.width = $$.p(p).width + "px";
+                else r.style.height = $$.p(p).height + "px";
                 p.prepend(r);
             }
     }   //*/

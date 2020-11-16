@@ -20,7 +20,7 @@ ipc["fonts"] = args => {
     });
     global.fonts = args.useFonts;
     loadUseFonts();
-    $a("f-emp").forEach(f => f.remove());
+    $$.all("f-emp").forEach(f => f.remove());
 };
 
 function removeSelectedFont(obj) {

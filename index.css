@@ -4,12 +4,12 @@
     --c-text:           #fff;
     --c-border:         #666;
     --c-move:           rgba(125, 150, 255, .5);
-    --c-button:         #777;
-    --c-button-hover:   #aaa;
     --c-canvas:         #000;
     --c-light:          #333;
     --c-lighter:        #444;
     --c-lightest:       #555;
+    --c-button:         var(--c-light);
+    --c-button-hover:   var(--c-lighter);
     --c-titlebar:       linear-gradient(to right, #648, #865);
     --c-hover:          rgba(255, 255, 255, .2);
 
@@ -351,4 +351,31 @@ a-events button:hover {
     height: 90%;
     overflow-x: hidden;
     overflow-y: auto;
+}
+
+a-event {
+    display: block;
+    padding: var(--s-pad);
+    border-radius: var(--s-corner);
+    background: var(--c-light);
+}
+
+a-event a-title {
+    background: var(--c-lighter);
+}
+
+a-event a-title:hover {
+    background: var(--c-lightest);
+}
+
+a-event button {
+    font-size: calc( var(--s-pad) * 1.5 );
+}
+
+button.b-light {
+    background: var(--c-lighter);
+}
+
+button.b-light:hover {
+    background: var(--c-lightest);
 }
