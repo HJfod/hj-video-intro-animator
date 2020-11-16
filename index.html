@@ -28,16 +28,27 @@
                         <input type="range" style="width: calc( 100% - 2 * var(--s-pad) );" id="timeline">
                         <br>
                         <text id="tl-current"></text>
+                        <p-buff></p-buff>
+                        <button id="tl-play">Play</button>
+                        <button id="tl-length">Set length</button>
                     </a-panel>
                     <a-dragger></a-dragger>
                     <a-panel name="File">
-                        <button>Load preset</button>
-                        <button>Save preset</button>
+                        <button onclick="editSettings();">Animation settings</button>
+                        <br><br>
+                        <button onclick="preset.select()">Load preset</button>
+                        <button onclick="preset.save()">Save preset</button>
                         <br><br>
                         <button onclick='ipcSend(`{ "action": "open", "window": "font.html" }`)'>Manage fonts</button>
                     </a-panel>
                 </a-cont>
             </a-cont>
+            <div id="overlay">
+                <over-window id="overlay-window">
+                    <p-head id="overlay-title"><text>Overlay</text><button>X</button></p-head>
+                    <p-cont id="overlay-content"></p-cont>
+                </over-window>
+            </div>
         </main>
     </body>
 </html>

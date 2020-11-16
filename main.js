@@ -73,8 +73,10 @@ const global = {
     frame: {
         current: 0,
         fps: 0,
-        max: 0
+        max: 0,
+        play: null
     },
+    name: "Unnamed",
     fonts: []
 }
 
@@ -219,7 +221,9 @@ class Text extends HTMLElement {
     }
 
     addInputS(table, text, vari, func, range = [0, 100]) {
-        table.put(text);
+        const txt = document.createElement("text");
+        txt.innerHTML = text;
+        table.put(txt);
         const siz = document.createElement("input");
         const siz_t = document.createElement("input");
         siz_t.setAttribute("size", "4");
@@ -232,6 +236,8 @@ class Text extends HTMLElement {
         siz.setAttribute("a-e", text.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]);
         table.put(siz);
         table.put(siz_t);
+
+        return [ txt, siz, siz_t ];
     }
 
     addSelect(text, opt, vari, func, extra = null) {
@@ -273,11 +279,8 @@ class Text extends HTMLElement {
         const div = document.createElement("div");
         const tab = new table(4, 8);
         const sel = document.createElement("select");
-        fromArray(sel, [
-            "Size",
-            "Spacing",
-            "Opacity"
-        ]);
+        sel.setAttribute("a-e", "affect");
+        fromArray(sel, [ "Size", "Spacing", "Opacity", "Position X", "Position Y" ]);
 
         sel.addEventListener("change", e => {
             $("a-title", div.parentElement).innerHTML = sel.value;
@@ -286,22 +289,82 @@ class Text extends HTMLElement {
         tab.puts([ "Affect:", sel, "", "" ]);
 
         const ord = document.createElement("select");
-        fromArray(ord, [ "Whole text", "Each word", "Each character" ]);
+        ord.setAttribute("a-e", "modify");
+        ord.addEventListener("change", e => draw());
+        fromArray(ord, [ "Whole text", "Each character" ]);
         tab.puts([ "Modify:", ord, "", "" ]);
 
         const ease = document.createElement("select");
+        ease.setAttribute("a-e", "easing");
+        ease.addEventListener("change", e => draw());
         fromArray(ease, [ "Linear", "Sine", "Exponental", "Exponental In", "Exponental Out" ]);
         tab.puts([ "Easing:", ease, "", "" ]);
 
         this.addInputS(tab, "Start:", 0, () => draw(), [ 0, global.frame.max ]);
         const setStartFrame = document.createElement("button");
-        setStartFrame.innerHTML = "Set";
+        setStartFrame.innerHTML = "From Current Frame";
+        setStartFrame.classList.add("b-light");
         setStartFrame.addEventListener("click", e => {
-            $("[a-e='start']").value = global.frame.current;
-            const ev = document.createEvent("InputEvent");
-            $("[a-e='start']").dispatchEvent(ev);
+            $("[a-e='start']", tab.table()).value = global.frame.current;
+            $("[a-e='start']", tab.table()).dispatchEvent(new Event('input', {
+                bubbles: true,
+                cancelable: true,
+            }));
         });
         tab.put(setStartFrame);
+
+        this.addInputS(tab, "End:", 0, () => draw(), [ 0, global.frame.max ]);
+        const setEndFrame = document.createElement("button");
+        setEndFrame.innerHTML = "From Current Frame";
+        setEndFrame.classList.add("b-light");
+        setEndFrame.addEventListener("click", e => {
+            $("[a-e='end']", tab.table()).value = global.frame.current;
+            $("[a-e='end']", tab.table()).dispatchEvent(new Event('input', {
+                bubbles: true,
+                cancelable: true,
+            }));
+        });
+        tab.put(setEndFrame);
+
+        this.addInputS(tab, "Amount:", 0, () => draw(), [ 0, 1024 ]);
+        tab.put("");
+
+        const ival = this.addInputS(tab, "Interval:", 0, () => draw(), [ 0, global.frame.max ]);
+        tab.put("");
+
+        const icheck = document.createElement("input");
+        icheck.setAttribute("type", "checkbox");
+        icheck.setAttribute("a-e", "reverse");
+        icheck.addEventListener("change", e => draw());
+        icheck.setAttribute("name", "icheck");
+        const ilabel = document.createElement("label");
+        ilabel.innerHTML = "Reverse order";
+        ilabel.setAttribute("for", "icheck");
+        tab.put(icheck);
+        tab.put(ilabel);
+        ival.push(icheck);
+        ival.push(ilabel);
+
+        ord.addEventListener("change", e => {
+            ival.forEach(i => {
+                if (ord.selectedIndex)
+                    i.style.display = "initial";
+                else i.style.display = "none";
+            });
+        });
+        ord.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+
+        sel.addEventListener("change", e => {
+            const og = $(`table [a-e='${sel.value.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]}']`,
+            tab.table().parentElement.parentElement.parentElement.parentElement.parentElement);
+
+            $("[a-e='amount']", tab.table()).setAttribute("min",
+            og.getAttribute("min"));
+
+            $("[a-e='amount']", tab.table()).setAttribute("max",
+            og.getAttribute("max"));
+            draw();
+        });
 
         div.append(tab.table());
         div.style.display = "none";

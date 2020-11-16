@@ -1,5 +1,5 @@
 class Easing {
-    Linear(frame, start, duration, startpos, amount) {
+    static Linear(frame, start, duration, startpos, amount) {
         /**
          * @name Linear
          * @author HJfod
@@ -12,7 +12,7 @@ class Easing {
         return frame <= start ? startpos : frame < start + duration ? ((frame-start) / duration) * amount + startpos : amount + startpos;
     }
 
-    Sine(frame, start, duration, startpos, amount) {
+    static Sine(frame, start, duration, startpos, amount) {
         /**
          * @name Sine
          * @author HJfod
@@ -25,7 +25,7 @@ class Easing {
         return frame <= start ? startpos : frame < start + duration ? (Math.cos((Math.PI/duration) * (frame - start - duration)) * (amount / 2) + startpos + amount / 2) : amount + startpos;
     }
 
-    ExponentalIn(frame, start, duration, startpos, amount, factor = 2) {
+    static ExponentalIn(frame, start, duration, startpos, amount, factor = 2) {
         /**
          * @name ExponentalIn
          * @author HJfod
@@ -41,7 +41,7 @@ class Easing {
         return frame <= start ? startpos : frame < start + duration ? ( amount * Math.pow((frame - start), factor) / Math.pow(duration, factor) ) + startpos : amount + startpos;
     }
 
-    ExponentalOut(frame, start, duration, startpos, amount, factor = 2) {
+    static ExponentalOut(frame, start, duration, startpos, amount, factor = 2) {
         /**
          * @name ExponentalOut
          * @author HJfod
@@ -57,7 +57,7 @@ class Easing {
         return frame <= start ? startpos : frame < start + duration ? ( (amount * -Math.pow(-frame + start + duration, factor)) / Math.pow(duration, factor) ) + startpos + amount : amount + startpos;
     }
 
-    Exponental(frame, start, duration, startpos, amount, factor = 3) {
+    static Exponental(frame, start, duration, startpos, amount, factor = 3) {
         /**
          * @name Exponental
          * @author HJfod

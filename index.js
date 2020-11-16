@@ -24,6 +24,8 @@ const global = {
     },
     fonts: [],
     fontsInUse: [],
+    presetExt: "prst",
+    presetFolder: "presets",
     w_size: null
 }
 
@@ -40,6 +42,12 @@ const brow = {
         contextIsolation: true
     }
 };
+
+try {
+    fs.accessSync(global.presetFolder);
+} catch (e) {
+    fs.mkdirSync(global.presetFolder);
+}
 
 app.on('ready', () => {
     w_main = new BrowserWindow(brow);
@@ -79,6 +87,21 @@ ipcMain.on("app", (event, args) => {
                 global.fontsInUse = f;
                 post({ action: "set-fonts", fonts: global.fontsInUse });
             }
+            break;
+        case "list-presets":
+            const list = [];
+            fs.readdirSync(global.presetFolder, { withFileTypes: true }).forEach(f => {
+                if (f.isFile() && f.name.endsWith(`.${global.presetExt}`))
+                    list.push({ name: JSON.parse(fs.readFileSync(`${global.presetFolder}\\${f.name}`)).name, path: `${global.presetFolder}\\${f.name}` });
+            });
+            post({ action: "presets-list", list: list });
+            break;
+        case "save-preset":
+            fs.writeFileSync(`${global.presetFolder}\\${args.value.name}.${global.presetExt}`, JSON.stringify(args.value));
+            break;
+        case "load-preset":
+            const data = fs.readFileSync(args.preset);
+            post({ action: "loaded-preset", data: data.toString() });
             break;
         case "open":
             w_fonts = new BrowserWindow(brow);

@@ -12,6 +12,7 @@
     --c-button-hover:   var(--c-lighter);
     --c-titlebar:       linear-gradient(to right, #648, #865);
     --c-hover:          rgba(255, 255, 255, .2);
+    --c-overlay:        rgba(0, 0, 0, .7);
 
     --s-p-head:         20px;
     --s-border:         1px;
@@ -332,7 +333,7 @@ a-events a-title {
     padding-left: var(--s-pad);
 }
 
-a-events button {
+a-events button:not(.b-light) {
     display: block;
     background: rgba(0,0,0,0);
     margin-top: 0px;
@@ -342,7 +343,7 @@ a-events button {
     font-size: calc( var(--s-pad) * 2 );
 }
 
-a-events button:hover {
+a-events button:not(.b-light):hover {
     opacity: 1;
     background: rgba(0,0,0,0);
 }
@@ -368,7 +369,7 @@ a-event a-title:hover {
     background: var(--c-lightest);
 }
 
-a-event button {
+a-event button:not(.b-light) {
     font-size: calc( var(--s-pad) * 1.5 );
 }
 
@@ -378,4 +379,61 @@ button.b-light {
 
 button.b-light:hover {
     background: var(--c-lightest);
+}
+
+p-buff {
+    width: calc( var(--s-pad) * 2 );
+    height: var(--s-pad);
+    display: inline-block;
+}
+
+#overlay {
+    width: 100%;
+    height: calc( 100% - var(--s-titlebar) );
+    top: var(--s-titlebar);
+    left: 0px;
+    position: absolute;
+    display: none;
+    background-color: var(--c-overlay);
+    z-index: 50;
+}
+
+#overlay[show] {
+    display: initial;
+}
+
+#overlay-window {
+    width: 400px;
+    height: 300px;
+    display: block;
+    position: absolute;
+    background-color: var(--c-bg);
+    top: 50%;
+    left: 50%;
+    z-index: 51;
+}
+
+#overlay-title {
+    cursor: move;
+    border: none;
+}
+
+#overlay-title text {
+    pointer-events: none;
+}
+
+#overlay-content {
+    border: none;
+}
+
+#overlay-title button {
+    float: right;
+    height: var(--s-p-head);
+    width: var(--s-p-head);
+    font-size: calc( var(--s-p-head) / 1.6 );
+    padding: 0px;
+    position: absolute;
+    margin-left: auto;
+    right: 0px;
+    margin-right: 0px;
 }
