@@ -124,12 +124,16 @@ function calcAR() {
 function renderVideo(settings) {
     if (settings.path.startsWith("<")) return;
 
+    ipcSend({ action: "init-render", settings: settings });
+}
+
+ipc["start-render"] = args => {
     $$.all("disable-on-render").forEach(d => d.style.pointerEvents = "none");
     $("#_rend_prog").innerHTML = "Rendering...";
     global.frame.current = 0;
     global.frame.render = true;
     play(true);
-}
+};
 
 ipc["selected-export-path"] = args => $("#_e_p").innerHTML = `${args.path}\\`;
 
@@ -265,6 +269,10 @@ function draw() {
     });
 }
 
+function render() {
+    ipcSend({ action: "rendered-frame", frame: global.frame.current, data: $("#anim").toDataURL() });
+}
+
 ipc["presets-list"] = args => {
     let plist = "";
     args.list.forEach(f => plist += `<f-opt f-path='${f.path}'>${f.name}</f-opt>`);
@@ -381,10 +389,20 @@ class preset {
 
 function play(rendering = false) {
     global.frame.current++;
-    if (global.frame.current > global.frame.max)
+    if (global.frame.current > global.frame.max) {
         global.frame.current = 0;
 
+        if (rendering) {
+            cancelAnimationFrame(global.frame.play);
+            global.frame.play = null;
+            draw();
+            return;
+        }
+    }
+
     draw();
+    if (rendering)
+        render();
 
     global.frame.play = requestAnimationFrame(play);
 }

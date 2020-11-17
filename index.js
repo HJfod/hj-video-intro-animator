@@ -24,6 +24,8 @@ const global = {
             return JSON.parse(fs.readFileSync(global.userdata))[key];
         } catch (e) { return null; };
     },
+    renderSettings: {},
+    renderTempDir: "__TEMP_DIR_HJVIA_FRAMES",
     fonts: [],
     fontsInUse: [],
     presetExt: "prst",
@@ -123,7 +125,48 @@ ipcMain.on("app", (event, args) => {
                 post({ action: "selected-export-path", path: p });
             } catch(e) {}
             break;
+        case "init-render":
+            try {
+                fs.accessSync(args.settings.path);
+
+                global.renderSettings = args.settings;
+                global.renderSettings.frameDir = path.join(args.settings.path, global.renderTempDir);
+                
+                try {
+                    fs.accessSync(global.renderSettings.frameDir);
+                    rmDir(global.renderSettings.frameDir, false);
+
+                    // TODO:
+                    // handle rendered-frame
+                    // handle render-error on renderer
+                    // send inited-render to renderer and handle by starting the render
+                    // create video
+                } catch (err) {
+                    fs.mkdirSync(global.renderSettings.frameDir);
+                }
+            } catch (e) {
+                post({ action: "render-error", error: e });
+            }
+            break;
+        case "rendered-frame":
+
+            break;
 }});
+
+rmDir = function(dirPath, rem = false) {
+    try { const files = fs.readdirSync(dirPath); }
+    catch(e) { return; }
+
+    if (files.length > 0)
+    for (let i = 0; i < files.length; i++) {
+        const filePath = dirPath + '/' + files[i];
+        if (fs.statSync(filePath).isFile())
+            fs.unlinkSync(filePath);
+        else
+            rmDir(filePath);
+    }
+    if (rem) fs.rmdirSync(dirPath);
+};
 
 function post(msg, w = w_main) {
     if (w) w.webContents.send("app", msg);
