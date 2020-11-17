@@ -15,9 +15,11 @@
             <a-cont dir="row">
                 <a-cont dir="column">
                     <a-panel name="Text">
-                        <button onclick="addText()">New</button>
-                        <br>
-                        <div id="div-texts"></div>
+                        <disable-on-render>
+                            <button onclick="addText()">Add new text</button>
+                            <br>
+                            <div id="div-texts"></div>
+                        </disable-on-render>
                     </a-panel>
                 </a-cont>
                 <a-dragger></a-dragger>
@@ -25,28 +27,35 @@
                     <a-panel name="Animation" size=2>
                         <canvas id="anim" width=1920 height=1080></canvas>
                         <br>
-                        <input type="range" style="width: calc( 100% - 2 * var(--s-pad) );" id="timeline">
-                        <br>
-                        <text id="tl-current"></text>
-                        <p-buff></p-buff>
-                        <button id="tl-play">Play</button>
-                        <button id="tl-length">Set length</button>
+                        <disable-on-render>
+                            <input type="range" style="width: calc( 100% - 2 * var(--s-pad) );" id="timeline">
+                            <br>
+                            <text id="tl-current"></text>
+                            <p-buff></p-buff>
+                            <button id="tl-play">Play</button>
+                            <button id="tl-length">Set length</button>
+                            <button id="tl-render">Render</button>
+                        </disable-on-render>
                     </a-panel>
                     <a-dragger></a-dragger>
                     <a-panel name="File">
-                        <button onclick="editSettings();">Animation settings</button>
-                        <br><br>
-                        <button onclick="preset.select()">Load preset</button>
-                        <button onclick="preset.save()">Save preset</button>
-                        <br><br>
-                        <button onclick='ipcSend(`{ "action": "open", "window": "font.html" }`)'>Manage fonts</button>
+                        <disable-on-render>
+                            <button onclick="editSettings();">Animation settings</button>
+                            <br><br>
+                            <button onclick="preset.select()">Load preset</button>
+                            <button onclick="preset.save()">Save preset</button>
+                            <br><br>
+                            <button onclick='ipcSend(`{ "action": "open", "window": "font.html" }`)'>Manage fonts</button>
+                        </disable-on-render>
                     </a-panel>
                 </a-cont>
             </a-cont>
             <div id="overlay">
                 <over-window id="overlay-window">
                     <p-head id="overlay-title"><text>Overlay</text><button>X</button></p-head>
-                    <p-cont id="overlay-content"></p-cont>
+                    <disable-on-render>
+                        <p-cont id="overlay-content"></p-cont>
+                    </disable-on-render>
                 </over-window>
             </div>
         </main>

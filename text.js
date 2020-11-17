@@ -54,6 +54,10 @@ function showOverlay(sett, content) {
         $$.all("[resolve-click]", oc).forEach(x => {
             x.addEventListener("click", e => {
                 const c = x.getAttribute("resolve-click");
+                if (c == "") {
+                    res("");
+                    return;
+                }
                 let a = [c];
                 if (c.includes("&"))
                     a = c.split("&");
@@ -84,7 +88,7 @@ function editSettings() {
         `
         <text>Length (frames):</text><p-buff></p-buff><input id='anim-len-set' value=${global.frame.max}>
         <br><br>
-        <text>Name:</text><p-buff></p-buff><input id='anim-name-set' value=${global.name}>
+        <text>Name:</text><p-buff></p-buff><input id='anim-name-set' value='${global.name}'>
         <br><br>
         <button resolve-click='#anim-len-set|value&#anim-name-set|value'>Apply</button>
         `
@@ -108,6 +112,83 @@ $("#tl-play").addEventListener("click", e => {
 $("#tl-length").addEventListener("click", e => {
     editSettings();
 });
+$("#tl-render").addEventListener("click", e => {
+    ipcSend({ action: "try-render" });
+});
+
+function calcAR() {
+    const d = gcd(parseInt($("#_w").value), parseInt($("#_h").value));
+    $("#aspect-ratio").innerHTML = (parseInt($("#_w").value) / d) + ":" + (parseInt($("#_h").value) / d);
+}
+
+function renderVideo(settings) {
+    if (settings.path.startsWith("<")) return;
+
+    $$.all("disable-on-render").forEach(d => d.style.pointerEvents = "none");
+    $("#_rend_prog").innerHTML = "Rendering...";
+    global.frame.current = 0;
+    global.frame.render = true;
+    play(true);
+}
+
+ipc["selected-export-path"] = args => $("#_e_p").innerHTML = `${args.path}\\`;
+
+ipc["can-render"] = args => {
+    if (args.can) {
+        const defBitRate = global.defaults.video.bitrate;
+        const vidType = "mp4";
+
+        showOverlay({ title: "Render settings", size: [700, 600] },
+            `
+            <h3>Render video</h3>
+            <text>Size:</text>
+            <br>
+            <input size=3 id="_w" maxlength=5 value=1920 oninput='calcAR()'>
+            <text> x </text>
+            <input id="_h" size=3 maxlength=5 value=1080 oninput='calcAR()'>
+            <p-buff></p-buff>
+            <text>Aspect ratio: </text><text id="aspect-ratio">16:9</text>
+            <br><br>
+            <text>Bitrate (kb/s):</text>
+            <br>
+            <input type="range" style='width: 80%' id="_r_r" value=${defBitRate} min=100 max=50000 oninput='$("#_r_v").value = this.value'>
+            <input id="_r_v" value=${defBitRate} oninput='if (!isNaN(this.value)) $("#_r_r").value = parseInt(this.value)'>
+            <br><br>
+            <text>Name:</text>
+            <p-buff></p-buff>
+            <input value='${global.name}' oninput='$("#_e_f").innerHTML = this.value'>
+            <br><br>
+            <button onclick="ipcSend({ action: 'select-export-path' })">Select Output Directory</button>
+            <p-buff></p-buff>
+            <text>Path:</text>
+            <text id="_e_p">&lt;No directory set&gt;</text>
+            <text id="_e_f">${global.name}</text>
+            <text>.${vidType}</text>
+            <br><br><br>
+            <button onclick='renderVideo({
+                size: [
+                    parseInt($("#_w").value),
+                    parseInt($("#_h").value)
+                ], 
+                bitrate: parseInt($("#_r_r").value), 
+                path: $("#_e_p").innerHTML + $("#_e_f").innerHTML + "." + "${vidType}" })'>Render</button>
+            <p-buff></p-buff>
+            <text id="_rend_prog"></text>
+            `
+        ).then(wres => {}).catch(err => {});
+    } else {
+        showOverlay({ title: "Unable to render!", size: [400, 400] },
+            `
+            <h3>Unable to render!</h3><br>
+            <text>Reason:</text>
+            <br><br>
+            <text>${args.error}</text>
+            <br><br>
+            <button resolve-click=''>Ok</button>
+            `
+        ).then(wres => {}).catch(err => {});
+    }
+};
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -233,50 +314,60 @@ ipc["loaded-preset"] = args => {
 
 class preset {
     static save() {
-        const res = {
-            name: global.name,
-            fps: global.frame.fps,
-            length: global.frame.max,
-            texts: []
-        };
+        showOverlay({ title: "Animation settings", size: [400, 200] },
+            `
+            <text>Name:</text><p-buff></p-buff><input id='anim-name-set' value='${global.name}'>
+            <br><br>
+            <button resolve-click='#anim-name-set|value'>Save</button>
+            `
+        ).then(wres => {
+            global.name = wres;
 
-        $$.all("a-text").forEach(t => {
-            const anim = {
-                size: [],
-                spacing: [],
-                opacity: [],
-                position_x: [],
-                position_y: [],
-                glow: []
+            const res = {
+                name: global.name,
+                fps: global.frame.fps,
+                length: global.frame.max,
+                texts: []
             };
-
-            $$.all("a-event div table", t).forEach(ev => {
-                anim[$("[a-e='affect']", ev).value.toLowerCase().replace(/\s/g, "_")].push({
-                    easing: $("[a-e='easing']", ev).value.replace(/\s/g, ""),
-                    modify: $("[a-e='modify']", ev).value,
-                    start: parseInt($("[a-e='start']", ev).value),
-                    end: parseInt($("[a-e='end']", ev).value),
-                    amount: parseInt($("[a-e='amount']", ev).value),
-                    interval: $("[a-e='modify']", ev).value == "Whole text" ? 0 : parseInt($("[a-e='interval']", ev).value),
-                    reverse: $("[a-e='modify']", ev).value == "Whole text" ? false : $("[a-e='reverse']", ev).checked
+    
+            $$.all("a-text").forEach(t => {
+                const anim = {
+                    size: [],
+                    spacing: [],
+                    opacity: [],
+                    position_x: [],
+                    position_y: [],
+                    glow: []
+                };
+    
+                $$.all("a-event div table", t).forEach(ev => {
+                    anim[$("[a-e='affect']", ev).value.toLowerCase().replace(/\s/g, "_")].push({
+                        easing: $("[a-e='easing']", ev).value.replace(/\s/g, ""),
+                        modify: $("[a-e='modify']", ev).value,
+                        start: parseInt($("[a-e='start']", ev).value),
+                        end: parseInt($("[a-e='end']", ev).value),
+                        amount: parseInt($("[a-e='amount']", ev).value),
+                        interval: $("[a-e='modify']", ev).value == "Whole text" ? 0 : parseInt($("[a-e='interval']", ev).value),
+                        reverse: $("[a-e='modify']", ev).value == "Whole text" ? false : $("[a-e='reverse']", ev).checked
+                    });
+                });
+    
+                res.texts.push({
+                    text: $("[a-e='text']", t).value,
+                    spacing: parseInt($("[a-e='spacing']", t).value),
+                    size: parseInt($("[a-e='size']", t).value),
+                    font: $("[a-e='font']", t).value,
+                    opacity: parseInt($("[a-e='opacity']", t).value),
+                    position_x: parseInt($("[a-e='position_x']", t).value),
+                    position_y: parseInt($("[a-e='position_y']", t).value),
+                    color: $("[a-e='color']", t).value,
+                    //glow: parseInt($("[a-e='glow']", t).value),
+                    animations: anim
                 });
             });
-
-            res.texts.push({
-                text: $("[a-e='text']", t).value,
-                spacing: parseInt($("[a-e='spacing']", t).value),
-                size: parseInt($("[a-e='size']", t).value),
-                font: $("[a-e='font']", t).value,
-                opacity: parseInt($("[a-e='opacity']", t).value),
-                position_x: parseInt($("[a-e='position_x']", t).value),
-                position_y: parseInt($("[a-e='position_y']", t).value),
-                color: $("[a-e='color']", t).value,
-                glow: parseInt($("[a-e='glow']", t).value),
-                animations: anim
-            });
-        });
-
-        ipcSend({ action: "save-preset", value: res });
+    
+            ipcSend({ action: "save-preset", value: res });
+        }).catch(err => {});
     }
     static select() {
         showOverlay({ title: "Loading presets", size: [500, 350] },
@@ -288,7 +379,7 @@ class preset {
     }
 }
 
-function play() {
+function play(rendering = false) {
     global.frame.current++;
     if (global.frame.current > global.frame.max)
         global.frame.current = 0;

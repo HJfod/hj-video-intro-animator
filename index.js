@@ -1,8 +1,10 @@
-const { app, BrowserWindow, Menu, ipcMain } = require('electron');
+'use strict';
+const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 const fs = require('fs');
 const path = require("path");
 const fontkit = require('fontkit');
 const getSystemFonts = require('get-system-fonts');
+const { exec } = require("child_process");
 
 let w_main, w_fonts;
 const global = {
@@ -52,7 +54,7 @@ try {
 app.on('ready', () => {
     w_main = new BrowserWindow(brow);
     w_main.loadFile("index.html");
-    w_size = w_main.getSize();
+    let w_size = w_main.getSize();
     w_main.on('resize', () => w_size = w_main.getSize());
     w_main.on('closed', () => {
         w_main = null;
@@ -107,6 +109,19 @@ ipcMain.on("app", (event, args) => {
         case "open":
             w_fonts = new BrowserWindow(brow);
             w_fonts.loadFile(args.window);
+            break;
+        case "try-render":
+            exec("ffmpeg", (err, out) => {
+                if (err.message.substring(err.message.indexOf("\n") + 1).startsWith("ffmpeg version "))
+                    post({ action: "can-render", can: true });
+                else post({ action: "can-render", can: false, error: err.message });
+            });
+            break;
+        case "select-export-path":
+            try {
+                const p = dialog.showOpenDialogSync({ properties: ["openDirectory"] })[0];
+                post({ action: "selected-export-path", path: p });
+            } catch(e) {}
             break;
 }});
 

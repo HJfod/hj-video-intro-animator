@@ -65,6 +65,10 @@ const capitalize = (s) => {
     return res.substr(1);
 }
 
+function gcd(a, b) {
+    return (b == 0) ? a : gcd (b, a%b);
+}
+
 const global = {
     panelToSwitch: null,
     defaults: {
@@ -77,14 +81,16 @@ const global = {
         },
         video: {
             fps: 60,
-            length: 5
+            length: 5,
+            bitrate: 20000
         }
     },
     frame: {
         current: 0,
         fps: 0,
         max: 0,
-        play: null
+        play: null,
+        render: false
     },
     name: "Unnamed",
     fonts: []
@@ -292,16 +298,25 @@ class Text extends HTMLElement {
         sel.setAttribute("a-e", "affect");
         fromArray(sel, [ "Size", "Spacing", "Opacity", "Position X", "Position Y" ]);
 
+        const getAmountRange = () => {
+            const og = $(`table [a-e='${sel.value.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]}']`, this);
+
+            if ($("[a-e='amount']", tab.table())) {
+                $("[a-e='amount']", tab.table()).setAttribute("min",
+                -parseInt(og.getAttribute("max")));
+
+                $("[a-e='amount']", tab.table()).setAttribute("max",
+                og.getAttribute("max"));
+            }
+            return [ og.getAttribute("min"), og.getAttribute("max") ];
+        }
+
         const val = {
             start: 0, end: 0, amount: 0, interval: 0, reverse: false
         };
         if (values)
             for (const [key, value] of Object.entries(values))
                 val[key] = value;
-
-        sel.addEventListener("change", e => {
-            $("a-title", div.parentElement).innerHTML = sel.value;
-        });
 
         tab.puts([ "Affect:", sel, "", "" ]);
 
@@ -316,6 +331,12 @@ class Text extends HTMLElement {
         ease.addEventListener("change", e => draw());
         fromArray(ease, [ "Linear", "Sine", "Exponental", "ExponentalIn", "ExponentalOut" ]);
         tab.puts([ "Easing:", ease, "", "" ]);
+
+        if (values) {
+            sel.value = capitalize(values.affect);
+            ord.value = values.modify;
+            ease.value = values.easing;
+        }
 
         this.addInputS(tab, "Start:", val.start, () => draw(), [ 0, global.frame.max ]);
         const setStartFrame = document.createElement("button");
@@ -343,7 +364,7 @@ class Text extends HTMLElement {
         });
         tab.put(setEndFrame);
 
-        this.addInputS(tab, "Amount:", val.amount, () => draw(), [ 0, 1024 ]);
+        this.addInputS(tab, "Amount:", val.amount, () => draw(), getAmountRange());
         tab.put("");
 
         const ival = this.addInputS(tab, "Interval:", val.interval, () => draw(), [ 0, global.frame.max ]);
@@ -363,12 +384,6 @@ class Text extends HTMLElement {
         ival.push(icheck);
         ival.push(ilabel);
 
-        if (values) {
-            sel.value = capitalize(values.affect);
-            ord.value = values.modify;
-            ease.value = values.easing;
-        }
-
         ord.addEventListener("change", e => {
             ival.forEach(i => {
                 if (ord.selectedIndex)
@@ -379,21 +394,16 @@ class Text extends HTMLElement {
         ord.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
 
         sel.addEventListener("change", e => {
-            console.log("f");
-
-            const og = $(`table [a-e='${sel.value.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]}']`,
-            div.parentElement.parentElement.parentElement.parentElement);
-
-            $("[a-e='amount']", tab.table()).setAttribute("min",
-            og.getAttribute("min"));
-
-            $("[a-e='amount']", tab.table()).setAttribute("max",
-            og.getAttribute("max"));
+            getAmountRange();
 
             draw();
         });
         if (values)
             sel.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+
+        sel.addEventListener("change", e => {
+            $("a-title", div.parentElement).innerHTML = sel.value;
+        });
 
         div.append(tab.table());
         div.style.display = "none";
@@ -450,9 +460,9 @@ class Text extends HTMLElement {
 
         this.tab = new table(3, 8);
         
-        this.addInput("Size:", global.defaults.text.size, () => draw(), [0, 256]);
-        this.addInput("Spacing:", global.defaults.text.kern, () => draw(), [0, 320]);
-        this.addInput("Opacity:", global.defaults.text.opacity, () => draw(), [0, 100]);
+        this.addInput("Size:", global.defaults.text.size, () => draw(), [ 0, 256 ]);
+        this.addInput("Spacing:", global.defaults.text.kern, () => draw(), [ 0, 320 ]);
+        this.addInput("Opacity:", global.defaults.text.opacity, () => draw(), [ 0, 100 ]);
         this.addInput("Position X:", global.defaults.text.pos, () => draw(), [ -1920, 1920 ]);
         this.addInput("Position Y:", global.defaults.text.pos, () => draw(), [ -1080, 1080 ]);
         //this.addInput("Glow:", global.defaults.text.glow, () => draw(), [ 0, 128 ]);
