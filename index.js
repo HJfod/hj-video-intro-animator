@@ -55,6 +55,7 @@ app.on('ready', () => {
     w_size = w_main.getSize();
     w_main.on('resize', () => w_size = w_main.getSize());
     w_main.on('closed', () => {
+        w_main = null;
         global.save("window-size", w_size);
         global.save("fonts", global.fontsInUse);
         app.quit();

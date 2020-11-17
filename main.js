@@ -56,6 +56,15 @@ class table {
     }
 }
 
+const capitalize = (s) => {
+    if (typeof s !== 'string') return ''
+    let res = "";
+    s.split(" ").forEach(ss => {
+        res += " " + ss.charAt(0).toUpperCase() + ss.slice(1);
+    });
+    return res.substr(1);
+}
+
 const global = {
     panelToSwitch: null,
     defaults: {
@@ -63,7 +72,8 @@ const global = {
             size: 20,
             kern: 14,
             pos: 0,
-            opacity: 100
+            opacity: 100,
+            glow: 0
         },
         video: {
             fps: 60,
@@ -275,12 +285,19 @@ class Text extends HTMLElement {
         this.tab.put("");
     }
 
-    addAnimationControls() {
+    addAnimationControls(values = null) {
         const div = document.createElement("div");
         const tab = new table(4, 8);
         const sel = document.createElement("select");
         sel.setAttribute("a-e", "affect");
         fromArray(sel, [ "Size", "Spacing", "Opacity", "Position X", "Position Y" ]);
+
+        const val = {
+            start: 0, end: 0, amount: 0, interval: 0, reverse: false
+        };
+        if (values)
+            for (const [key, value] of Object.entries(values))
+                val[key] = value;
 
         sel.addEventListener("change", e => {
             $("a-title", div.parentElement).innerHTML = sel.value;
@@ -297,10 +314,10 @@ class Text extends HTMLElement {
         const ease = document.createElement("select");
         ease.setAttribute("a-e", "easing");
         ease.addEventListener("change", e => draw());
-        fromArray(ease, [ "Linear", "Sine", "Exponental", "Exponental In", "Exponental Out" ]);
+        fromArray(ease, [ "Linear", "Sine", "Exponental", "ExponentalIn", "ExponentalOut" ]);
         tab.puts([ "Easing:", ease, "", "" ]);
 
-        this.addInputS(tab, "Start:", 0, () => draw(), [ 0, global.frame.max ]);
+        this.addInputS(tab, "Start:", val.start, () => draw(), [ 0, global.frame.max ]);
         const setStartFrame = document.createElement("button");
         setStartFrame.innerHTML = "From Current Frame";
         setStartFrame.classList.add("b-light");
@@ -313,7 +330,7 @@ class Text extends HTMLElement {
         });
         tab.put(setStartFrame);
 
-        this.addInputS(tab, "End:", 0, () => draw(), [ 0, global.frame.max ]);
+        this.addInputS(tab, "End:", val.end, () => draw(), [ 0, global.frame.max ]);
         const setEndFrame = document.createElement("button");
         setEndFrame.innerHTML = "From Current Frame";
         setEndFrame.classList.add("b-light");
@@ -326,15 +343,16 @@ class Text extends HTMLElement {
         });
         tab.put(setEndFrame);
 
-        this.addInputS(tab, "Amount:", 0, () => draw(), [ 0, 1024 ]);
+        this.addInputS(tab, "Amount:", val.amount, () => draw(), [ 0, 1024 ]);
         tab.put("");
 
-        const ival = this.addInputS(tab, "Interval:", 0, () => draw(), [ 0, global.frame.max ]);
+        const ival = this.addInputS(tab, "Interval:", val.interval, () => draw(), [ 0, global.frame.max ]);
         tab.put("");
 
         const icheck = document.createElement("input");
         icheck.setAttribute("type", "checkbox");
         icheck.setAttribute("a-e", "reverse");
+        icheck.checked = val.reverse;
         icheck.addEventListener("change", e => draw());
         icheck.setAttribute("name", "icheck");
         const ilabel = document.createElement("label");
@@ -344,6 +362,12 @@ class Text extends HTMLElement {
         tab.put(ilabel);
         ival.push(icheck);
         ival.push(ilabel);
+
+        if (values) {
+            sel.value = capitalize(values.affect);
+            ord.value = values.modify;
+            ease.value = values.easing;
+        }
 
         ord.addEventListener("change", e => {
             ival.forEach(i => {
@@ -355,20 +379,53 @@ class Text extends HTMLElement {
         ord.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
 
         sel.addEventListener("change", e => {
+            console.log("f");
+
             const og = $(`table [a-e='${sel.value.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]}']`,
-            tab.table().parentElement.parentElement.parentElement.parentElement.parentElement);
+            div.parentElement.parentElement.parentElement.parentElement);
 
             $("[a-e='amount']", tab.table()).setAttribute("min",
             og.getAttribute("min"));
 
             $("[a-e='amount']", tab.table()).setAttribute("max",
             og.getAttribute("max"));
+
             draw();
         });
+        if (values)
+            sel.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
 
         div.append(tab.table());
         div.style.display = "none";
         return div;
+    }
+
+    addAnimation(values = null) {
+        const nani = document.createElement("a-event");
+        const name = values == null ? "&lt;New animation&gt;" : values.affect;
+        nani.innerHTML =
+        "<a-title onclick='$(`div`, this.parentElement).style.display ="
+        +"$(`div`, this.parentElement).style.display == `initial` ? `none` : `initial`'>" + name + "</a-title>";
+        const nanb = document.createElement("button");
+        nanb.innerHTML = "╳";
+        nanb.addEventListener("click", e => { nani.remove(); draw(); });
+        nani.append(nanb);
+        nani.append(this.addAnimationControls(values));
+        $("div a-events div", this).style.display = "initial";
+        $("div a-events div", this).append(nani);
+    }
+
+    refresh() {
+        const t = this;
+        [
+            $("[a-e='text']", t),
+            $("[a-e='size']", t),
+            $("[a-e='font']", t),
+            $("[a-e='opacity']", t),
+            $("[a-e='position_x']", t),
+            $("[a-e='position_y']", t),
+            $("[a-e='color']", t)
+        ].forEach(y => y.dispatchEvent(new Event('input', { bubbles: true, cancelable: true })));
     }
 
     connectedCallback() {
@@ -398,6 +455,7 @@ class Text extends HTMLElement {
         this.addInput("Opacity:", global.defaults.text.opacity, () => draw(), [0, 100]);
         this.addInput("Position X:", global.defaults.text.pos, () => draw(), [ -1920, 1920 ]);
         this.addInput("Position Y:", global.defaults.text.pos, () => draw(), [ -1080, 1080 ]);
+        //this.addInput("Glow:", global.defaults.text.glow, () => draw(), [ 0, 128 ]);
         this.addType("Color:", "#ffffff", () => draw());
         this.addSelect("Font:", global.fonts, 0, () => draw(), { is: "button", text: "More", click: () => {
             ipcSend(`{ "action": "open", "window": "font.html" }`);
@@ -416,17 +474,7 @@ class Text extends HTMLElement {
         const anc = document.createElement("button");
         anc.innerHTML = "+";
         anc.addEventListener("click", e => {
-            const nani = document.createElement("a-event");
-            nani.innerHTML =
-            "<a-title onclick='$(`div`, this.parentElement).style.display ="
-            +"$(`div`, this.parentElement).style.display == `initial` ? `none` : `initial`'>&lt;New animation&gt;</a-title>";
-            const nanb = document.createElement("button");
-            nanb.innerHTML = "╳";
-            nanb.addEventListener("click", e => { nani.remove(); draw(); });
-            nani.append(nanb);
-            nani.append(this.addAnimationControls());
-            anid.style.display = "initial";
-            anid.append(nani);
+            this.addAnimation();
         });
         ani.append(anit);
         ani.append(anc);

@@ -37,7 +37,9 @@ function addSelectedFont(obj) {
 }
 
 window.addEventListener("beforeunload", e => {
+    try {
     ipcSend({ action: "set-fonts", fonts: global.fonts });
+    } catch(e) {}
 
     return false;
 });

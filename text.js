@@ -124,6 +124,7 @@ function draw() {
         const x = parseInt($("[a-e='position_x']", t).value);
         const y = parseInt($("[a-e='position_y']", t).value);
         const color = $("[a-e='color']", t).value;
+        const glow = 0; //parseInt($("[a-e='glow']", t).value);
 
         const events = {
             size: [],
@@ -131,6 +132,7 @@ function draw() {
             opacity: [],
             position_x: [],
             position_y: [],
+            glow: [],
             parse: (event, index) => {
                 let res = 0;
                 events[event].forEach(e => {
@@ -160,7 +162,8 @@ function draw() {
         ctx.textAlign = "center";
         ctx.textBaseline = 'middle';
         ctx.fillStyle = color;
-        text.forEach((char, ix) => {
+
+        const drawChar = (char, ix) => {
             ctx.font = (size + events.parse("size", ix)) + "px " + font;
             ctx.globalAlpha = ((opacity + events.parse("opacity", ix)) / 100);
             ctx.fillText(
@@ -168,6 +171,15 @@ function draw() {
                 canvas.width / 2 + (kerning + events.parse("spacing", ix)) * (ix + (text.length + 1) / 2 - text.length) + x + events.parse("position_x", ix),
                 canvas.height / 2 + y + events.parse("position_y", ix)
             );
+        }
+
+        text.forEach((char, ix) => {
+            if (glow + events.parse("glow", ix)) {
+                ctx.filter = `blur(${glow + events.parse("glow", ix)}px)`;
+                drawChar(char, ix);
+                ctx.filter = "none";
+            }
+            drawChar(char, ix);
         });
     });
 }
@@ -187,7 +199,36 @@ ipc["presets-list"] = args => {
 };
 
 ipc["loaded-preset"] = args => {
-    console.log(JSON.parse(args.data));
+    $("#div-texts").innerHTML = "";
+    const pset = JSON.parse(args.data);
+    global.name = pset.name;
+    global.frame.fps = pset.fps;
+    global.frame.max = pset.length;
+    pset.texts.forEach(text => {
+        const t = document.createElement("a-text");
+        $("#div-texts").append(t);
+        
+        $("[a-e='text']", t).value = text.text;
+        $("[a-e='spacing']", t).value = text.spacing;
+        $("[a-e='size']", t).value = text.size;
+        $("[a-e='font']", t).value = text.font;
+        $("[a-e='opacity']", t).value = text.opacity;
+        $("[a-e='position_x']", t).value = text.position_x;
+        $("[a-e='position_y']", t).value = text.position_y;
+        $("[a-e='color']", t).value = text.color;
+        //$("[a-e='glow']", t).value = text.glow;
+
+        for (const [key, value] of Object.entries(text.animations))
+            value.forEach(v => {
+                const obj = v;
+                v.affect = capitalize(key.replace(/\_/g, " "));
+                t.addAnimation(v);
+            });
+        
+        t.refresh();
+    });
+
+    draw();
 };
 
 class preset {
@@ -205,7 +246,8 @@ class preset {
                 spacing: [],
                 opacity: [],
                 position_x: [],
-                position_y: []
+                position_y: [],
+                glow: []
             };
 
             $$.all("a-event div table", t).forEach(ev => {
@@ -229,6 +271,7 @@ class preset {
                 position_x: parseInt($("[a-e='position_x']", t).value),
                 position_y: parseInt($("[a-e='position_y']", t).value),
                 color: $("[a-e='color']", t).value,
+                glow: parseInt($("[a-e='glow']", t).value),
                 animations: anim
             });
         });
