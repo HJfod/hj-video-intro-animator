@@ -93,6 +93,7 @@ const global = {
         play: null,
         render: false
     },
+    templates: [],
     name: "Unnamed",
     fonts: []
 }
@@ -433,6 +434,7 @@ class Text extends HTMLElement {
             $("[a-e='size']", t),
             $("[a-e='font']", t),
             $("[a-e='opacity']", t),
+            $("[a-e='spacing']", t),
             $("[a-e='position_x']", t),
             $("[a-e='position_y']", t),
             $("[a-e='color']", t)

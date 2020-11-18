@@ -1,0 +1,130 @@
+[
+    {
+        "name": "Empty text",
+        "template": null
+    },
+    {
+        "name": "Title",
+        "template": {
+            "text": "Title Here",
+            "spacing": 80,
+            "size": 116,
+            "font": null,
+            "opacity": 100,
+            "position_x": 0,
+            "position_y": 0,
+            "color": "#ffffff",
+            "animations": {}
+        }
+    },
+    {
+        "name": "Title (With animation)",
+        "template": {
+            "text": "Title Here",
+            "spacing": 80,
+            "size": 96,
+            "font": null,
+            "opacity": 0,
+            "position_x": 0,
+            "position_y": 50,
+            "color": "#ffffff",
+            "animations": {
+                "opacity": [
+                    {
+                        "easing": "ExponentalOut",
+                        "modify": "Each character",
+                        "start": 0,
+                        "end": 10,
+                        "amount": 100,
+                        "interval": 5,
+                        "reverse": false
+                    }
+                ],
+                "position_y": [
+                    {
+                        "easing": "ExponentalOut",
+                        "modify": "Each character",
+                        "start": 0,
+                        "end": 10,
+                        "amount": -50,
+                        "interval": 5,
+                        "reverse": false
+                    }
+                ],
+                "size": [
+                    {
+                        "easing": "ExponentalOut",
+                        "modify": "Each character",
+                        "start": 0,
+                        "end": 10,
+                        "amount": 20,
+                        "interval": 5,
+                        "reverse": false
+                    }
+                ],
+                "spacing": [
+                    {
+                        "easing": "ExponentalOut",
+                        "modify": "Whole text",
+                        "start": 0,
+                        "end": 300,
+                        "amount": 20,
+                        "interval": 0,
+                        "reverse": false
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "name": "Chapter title",
+        "template": {
+            "text": "Chapter 1",
+            "size": 60,
+            "spacing": 50,
+            "font": null,
+            "opacity": 100,
+            "position_x": 0,
+            "position_y": -150,
+            "color": "#ffffff",
+            "animations": {}
+        }
+    },
+    {
+        "name": "Chapter title (Animation)",
+        "template": {
+            "text": "Chapter 1",
+            "size": 60,
+            "spacing": 50,
+            "font": null,
+            "opacity": 0,
+            "position_x": 0,
+            "position_y": -100,
+            "color": "#ffffff",
+            "animations": {
+                "opacity": [
+                    {
+                        "easing": "ExponentalOut",
+                        "modify": "Each character",
+                        "start": 0,
+                        "end": 10,
+                        "amount": 100,
+                        "interval": 5,
+                        "reverse": false
+                    }
+                ],
+                "position_y": [
+                    {
+                        "easing": "ExponentalOut",
+                        "modify": "Each character",
+                        "start": 0,
+                        "end": 10,
+                        "amount": -50,
+                        "interval": 5,
+                        "reverse": false
+                    }
+                ]
+            }
+        }
+    }
+]

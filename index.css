@@ -13,6 +13,7 @@
     --c-titlebar:       linear-gradient(to right, #648, #865);
     --c-hover:          rgba(255, 255, 255, .2);
     --c-overlay:        rgba(0, 0, 0, .7);
+    --c-link:           #3ef;
 
     --s-p-head:         20px;
     --s-border:         1px;
@@ -449,4 +450,16 @@ align-center {
 
 align-center text {
     text-align: center;
+}
+
+a-link {
+    text-decoration: underline;
+    color: var(--c-link);
+    cursor: pointer;
+    display: inline-block;
+}
+
+details summary {
+    cursor: pointer;
+    user-select: none;
 }

@@ -6,6 +6,48 @@ function addText() {
     $("#div-texts").append(t);
 }
 
+function addTemplate() {
+    let t_string = "";
+    global.templates.forEach(temp => t_string += `<f-opt>${temp.name}</f-opt>`);
+    showOverlay({ title: "Add text from template", size: [400, 400] },
+        `
+        <f-sel id="_t_t_s" resolve-click='#_t_t_s f-opt:hover|innerHTML'>
+            ${t_string}
+        </f-sel>
+        `
+    ).then(res => {
+        let text = {};
+        global.templates.forEach(temp => {
+            if (temp.name == res[0]) text = temp.template;
+        });
+        if (!text && res[0] != "Empty text") return;
+
+        const t = document.createElement("a-text");
+        $("#div-texts").append(t);
+        
+        $("[a-e='text']", t).value = text.text;
+        $("[a-e='spacing']", t).value = text.spacing;
+        $("[a-e='size']", t).value = text.size;
+        $("[a-e='font']", t).value = text.font == null ? global.fonts[0] : text.font;
+        $("[a-e='opacity']", t).value = text.opacity;
+        $("[a-e='position_x']", t).value = text.position_x;
+        $("[a-e='position_y']", t).value = text.position_y;
+        $("[a-e='color']", t).value = text.color;
+        //$("[a-e='glow']", t).value = text.glow;
+
+        for (const [key, value] of Object.entries(text.animations))
+            value.forEach(v => {
+                const obj = v;
+                v.affect = capitalize(key.replace(/\_/g, " "));
+                t.addAnimation(v);
+            });
+        
+        t.refresh();
+
+        draw();
+    }).catch(err => {});
+}
+
 ipc["set-fonts"] = args => {
     global.fonts = args.fonts;
     $$.all("a-text div table tr td select").forEach(s => {
@@ -14,7 +56,11 @@ ipc["set-fonts"] = args => {
     });
 };
 
-ipcSend({ action: "load-fonts" });
+ipc["templates"] = args => {
+    global.templates = args.templates;
+};
+
+ipcSend({ action: "load" });
 
 $("#overlay-title").addEventListener("mousedown", e => e.target.setAttribute("w-moving", ""));
 document.addEventListener("mouseup", e => $("#overlay-title").removeAttribute("w-moving"));
@@ -128,6 +174,8 @@ $("#tl-render").addEventListener("click", e => {
 function calcAR() {
     const d = gcd(parseInt($("#_w").value), parseInt($("#_h").value));
     $("#aspect-ratio").innerHTML = (parseInt($("#_w").value) / d) + ":" + (parseInt($("#_h").value) / d);
+    if ($("#aspect-ratio").innerHTML != "16:9")
+        $("#aspect-ratio").innerHTML += " (16:9 recommended!)";
 }
 
 function renderVideo(settings) {
@@ -233,9 +281,14 @@ ipc["can-render"] = args => {
         showOverlay({ title: "Unable to render!", size: [400, 400] },
             `
             <h3>Unable to render!</h3><br>
-            <text>Reason:</text>
+            <text>It appears FFmpeg is not installed on your system. Please install FFmpeg from here:</text>
             <br><br>
+            <a-link onclick="ipcSend({ action: 'open-web', page: 'https://ffmpeg.org/download.html' });">FFmpeg download</a-link>
+            <br><br>
+            <details>
+            <summary>Details</summary>
             <text>${args.error}</text>
+            </details>
             <br><br>
             <button resolve-click=''>Ok</button>
             `

@@ -86,8 +86,11 @@ ipcMain.on("app", (event, args) => {
             post({ action: "set-fonts", fonts: args.fonts });
             global.fontsInUse = args.fonts;
             break;
-        case "load-fonts":
+        case "load":
             const f = global.load("fonts");
+            const t = fs.readFileSync("templates.json");
+            post({ action: "templates", templates: JSON.parse(t) });
+            
             if (f) {
                 global.fontsInUse = f;
                 post({ action: "set-fonts", fonts: global.fontsInUse });
@@ -116,7 +119,7 @@ ipcMain.on("app", (event, args) => {
             exec("ffmpeg", (err, out) => {
                 if (err.message.substring(err.message.indexOf("\n") + 1).startsWith("ffmpeg version "))
                     post({ action: "can-render", can: true });
-                else post({ action: "can-render", can: false, error: err });
+                else post({ action: "can-render", can: false, error: err.message });
             });
             break;
         case "select-export-path":
@@ -138,7 +141,6 @@ ipcMain.on("app", (event, args) => {
                 } catch (err) {
                     fs.mkdirSync(global.renderSettings.frameDir);
                 }
-                console.log("Render initiated!");
                 post({ action: "start-render" });
             } catch (e) {
                 post({ action: "render-error", error: e.message });
@@ -184,6 +186,9 @@ ipcMain.on("app", (event, args) => {
             break;
         case "open-file-explorer":
             shell.showItemInFolder(args.path.replace(/\//g, "\\"));
+            break;
+        case "open-web":
+            shell.openExternal(args.page);
             break;
 }});
 
