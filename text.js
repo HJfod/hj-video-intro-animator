@@ -51,27 +51,36 @@ function showOverlay(sett, content) {
         $("#overlay-title text").innerHTML = sett.title;
         $("#overlay-title button").addEventListener("click", e => rej("Closed"));
 
-        $$.all("[resolve-click]", oc).forEach(x => {
-            x.addEventListener("click", e => {
-                const c = x.getAttribute("resolve-click");
-                if (c == "") {
-                    res("");
-                    return;
-                }
-                let a = [c];
-                if (c.includes("&"))
-                    a = c.split("&");
-                const r = [];
-                a.forEach(l => 
-                    r.push(
-                        l.split("|")[1].startsWith("%") ?
-                        $(l.split("|")[0], ow).getAttribute(l.split("|")[1].substring(1)) :
-                        $(l.split("|")[0], ow)[l.split("|")[1]]
-                    )
-                );
-                res(r);
+        if (sett.noclose) {
+            $("#overlay-title button").setAttribute("disabled", "");
+
+            resolve(true);
+        } else {
+            if ($("#overlay-title button").hasAttribute("disabled"))
+                $("#overlay-title button").removeAttribute("disabled");
+        
+            $$.all("[resolve-click]", oc).forEach(x => {
+                x.addEventListener("click", e => {
+                    const c = x.getAttribute("resolve-click");
+                    if (c == "") {
+                        res("");
+                        return;
+                    }
+                    let a = [c];
+                    if (c.includes("&"))
+                        a = c.split("&");
+                    const r = [];
+                    a.forEach(l => 
+                        r.push(
+                            l.split("|")[1].startsWith("%") ?
+                            $(l.split("|")[0], ow).getAttribute(l.split("|")[1].substring(1)) :
+                            $(l.split("|")[0], ow)[l.split("|")[1]]
+                        )
+                    );
+                    res(r);
+                });
             });
-        });
+        }
     });
 }
 
@@ -129,10 +138,45 @@ function renderVideo(settings) {
 
 ipc["start-render"] = args => {
     $$.all("disable-on-render").forEach(d => d.style.pointerEvents = "none");
-    $("#_rend_prog").innerHTML = "Rendering...";
-    global.frame.current = 0;
-    global.frame.render = true;
-    play(true);
+    showOverlay({ title: "Rendering", size: [300, 200], noclose: true },
+        `
+        <align-center>
+            <text id="_r_prog">Rendering...</text>
+        </align-center>
+        `
+    ).then(wres => {
+        global.frame.current = 0;
+        global.frame.render = true;
+        play(true);
+    }).catch(err => {});
+};
+
+ipc["render-error"] = args => {
+    global.frame.render = false;
+    $$.all("disable-on-render").forEach(x => x.style.pointerEvents = "initial")
+    showOverlay({ title: "Unable to render!", size: [400, 400] },
+        `
+        <h3>Unable to render!</h3><br>
+        <text>Error:</text>
+        <br><br>
+        <text>${args.error}</text>
+        <br><br>
+        <button resolve-click=''>Ok</button>
+        `
+    ).then(wres => {}).catch(err => {});
+};
+
+ipc["render-finished"] = args => {
+    $$.all("disable-on-render").forEach(x => x.style.pointerEvents = "initial")
+    showOverlay({ title: "Render finished", size: [400, 400] },
+        `
+        <h3>Succesfully rendered!</h3><br>
+        <text>Path:</text><text>${args.output}</text>
+        <br><br>
+        <button resolve-click=''>Ok</button>
+        <button onclick='ipcSend({ action: "open-file-explorer", path: "${args.output.replace(/\\/g, "/")}" })'>Open Result</button>
+        `
+    ).finally(res => {});
 };
 
 ipc["selected-export-path"] = args => $("#_e_p").innerHTML = `${args.path}\\`;
@@ -173,9 +217,14 @@ ipc["can-render"] = args => {
                 size: [
                     parseInt($("#_w").value),
                     parseInt($("#_h").value)
-                ], 
-                bitrate: parseInt($("#_r_r").value), 
-                path: $("#_e_p").innerHTML + $("#_e_f").innerHTML + "." + "${vidType}" })'>Render</button>
+                ],
+                sec: ${global.frame.max / global.frame.fps},
+                bitrate: parseInt($("#_r_r").value),
+                crf: ${global.defaults.video.crf},
+                fps: ${global.frame.fps},
+                path: $("#_e_p").innerHTML,
+                name: $("#_e_f").innerHTML + "." + "${vidType}"
+            })'>Render</button>
             <p-buff></p-buff>
             <text id="_rend_prog"></text>
             `
@@ -196,6 +245,11 @@ ipc["can-render"] = args => {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.globalAlpha = 1;
+    ctx.filter = "none";
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     $("#timeline").value = global.frame.current;
     $("#tl-current").innerHTML = `Frame: ${global.frame.current} / ${global.frame.max}`;
@@ -387,24 +441,33 @@ class preset {
     }
 }
 
-function play(rendering = false) {
+function play() {
     global.frame.current++;
     if (global.frame.current > global.frame.max) {
         global.frame.current = 0;
 
-        if (rendering) {
-            cancelAnimationFrame(global.frame.play);
+        if (global.frame.render) {
             global.frame.play = null;
+            global.frame.render = false;
             draw();
+            ipcSend({ action: "render-create-video" });
+            $("#_r_prog").innerHTML = `Creating video...`;
             return;
         }
     }
 
     draw();
-    if (rendering)
+    if (global.frame.render) {
         render();
+        $("#_r_prog").innerHTML = `Rendering...<br>Collecting frames (${global.frame.current}/${global.frame.max})`;
+    }
 
     global.frame.play = requestAnimationFrame(play);
+        /*
+    if (global.frame.render)
+        play();
+    else global.frame.play = requestAnimationFrame(play);
+        //*/
 }
 
 draw();

@@ -1,5 +1,5 @@
 'use strict';
-const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron');
 const fs = require('fs');
 const path = require("path");
 const fontkit = require('fontkit');
@@ -116,7 +116,7 @@ ipcMain.on("app", (event, args) => {
             exec("ffmpeg", (err, out) => {
                 if (err.message.substring(err.message.indexOf("\n") + 1).startsWith("ffmpeg version "))
                     post({ action: "can-render", can: true });
-                else post({ action: "can-render", can: false, error: err.message });
+                else post({ action: "can-render", can: false, error: err });
             });
             break;
         case "select-export-path":
@@ -135,36 +135,64 @@ ipcMain.on("app", (event, args) => {
                 try {
                     fs.accessSync(global.renderSettings.frameDir);
                     rmDir(global.renderSettings.frameDir, false);
-
-                    // TODO:
-                    // handle rendered-frame
-                    // handle render-error on renderer
-                    // send inited-render to renderer and handle by starting the render
-                    // create video
                 } catch (err) {
                     fs.mkdirSync(global.renderSettings.frameDir);
                 }
+                console.log("Render initiated!");
+                post({ action: "start-render" });
             } catch (e) {
-                post({ action: "render-error", error: e });
+                post({ action: "render-error", error: e.message });
             }
             break;
         case "rendered-frame":
+            try {
+                const buf = Buffer.from(args.data.replace(/^data:image\/\w+;base64,/, ""), 'base64');
+                fs.writeFileSync(`${global.renderSettings.frameDir}\\f_${args.frame}.png`, buf);
+            } catch (e) {
+                post({ action: "render-error", error: e.message });
+            }
+            break;
+        case "render-create-video":
+            try {
+                const out = path.join(global.renderSettings.path, global.renderSettings.name);
+                try {
+                    fs.accessSync(out);
+                    fs.unlinkSync(out);
+                } catch (n_e) {};
 
+                exec(`
+                    ffmpeg
+                    -framerate ${global.renderSettings.fps}
+                    -i "${global.renderSettings.frameDir}\\f_%d.png"
+                    -c:v libx264
+                    -b:v ${global.renderSettings.bitrate}K
+                    -r ${global.renderSettings.fps}
+                    -pix_fmt yuv420p
+                    -vf scale=${global.renderSettings.size[0] + ":" + global.renderSettings.size[1]}
+                    -crf ${global.renderSettings.crf}
+                    "${out}"
+                `.replace(/\n/g, ""), (err, outp) => {
+                    rmDir(global.renderSettings.frameDir, true);
+                    if (err)
+                        post({ action: "render-error", error: err.message });
+                    else
+                        post({ action: "render-finished", output: out });
+                });
+            } catch (e) {
+                post({ action: "render-error", error: e })
+            }
+            break;
+        case "open-file-explorer":
+            shell.showItemInFolder(args.path.replace(/\//g, "\\"));
             break;
 }});
 
-rmDir = function(dirPath, rem = false) {
-    try { const files = fs.readdirSync(dirPath); }
-    catch(e) { return; }
-
-    if (files.length > 0)
-    for (let i = 0; i < files.length; i++) {
-        const filePath = dirPath + '/' + files[i];
-        if (fs.statSync(filePath).isFile())
-            fs.unlinkSync(filePath);
-        else
-            rmDir(filePath);
-    }
+function rmDir(dirPath, rem = false) {
+    fs.readdirSync(dirPath, { withFileTypes: true }).forEach(f => {
+        const filePath = dirPath + '/' + f.name;
+        if (f.isFile()) fs.unlinkSync(filePath);
+        else rmDir(filePath);
+    });
     if (rem) fs.rmdirSync(dirPath);
 };
 

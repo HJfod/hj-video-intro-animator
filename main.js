@@ -82,7 +82,8 @@ const global = {
         video: {
             fps: 60,
             length: 5,
-            bitrate: 20000
+            bitrate: 20000,
+            crf: 5
         }
     },
     frame: {
