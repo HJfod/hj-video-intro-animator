@@ -258,7 +258,7 @@ class Text extends HTMLElement {
         return [ txt, siz, siz_t ];
     }
 
-    addSelect(text, opt, vari, func, extra = null) {
+    addSelect(text, opt, vari, func, extra = null, attr = null) {
         this.tab.put(text);
         const sel = document.createElement("select");
         opt.forEach(o => {
@@ -270,6 +270,7 @@ class Text extends HTMLElement {
         sel.addEventListener("change", e => func());
         sel.setAttribute("a-e", text.toLowerCase().replace(/\s/g, "_").match(/[a-z]+(\_[a-z]+)*/g)[0]);
         this.tab.put(sel);
+        if (attr) attr.forEach(a => sel.setAttribute(a[0], a[1]) );
         if (!extra)
             this.tab.put("");
         else {
@@ -320,7 +321,31 @@ class Text extends HTMLElement {
             for (const [key, value] of Object.entries(values))
                 val[key] = value;
 
-        tab.puts([ "Affect:", sel, "", "" ]);
+        const off = document.createElement("button");
+        off.innerHTML = "Offset animation";
+        off.classList.add("b-light");
+        off.addEventListener("click", e => {
+            showOverlay({ title: "Offset animation", size: [400, 200] },
+                `
+                <text>Offset:</text>
+                <br>
+                <input id="_a_off" placeholder="Offset here">
+                <br><br>
+                <button resolve-click='#_a_off|value'>Apply</button>
+                `
+            ).then(res => {
+                if (isNaN(res[0])) return;
+                const val = parseInt(res[0]);
+
+                const a = $("[a-e='start']", tab.table()), e = $("[a-e='end']", tab.table());
+                a.value = parseInt(a.value) + val;
+                e.value = parseInt(e.value) + val;
+                a.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+                e.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+            }).catch(err => {});
+        });
+
+        tab.puts([ "Affect:", sel, "", off ]);
 
         const ord = document.createElement("select");
         ord.setAttribute("a-e", "modify");
@@ -472,9 +497,37 @@ class Text extends HTMLElement {
         this.addType("Color:", "#ffffff", () => draw());
         this.addSelect("Font:", global.fonts, 0, () => draw(), { is: "button", text: "More", click: () => {
             ipcSend(`{ "action": "open", "window": "font.html" }`);
-        }, attr: [ [ "class", "b-light" ] ] });
+        }, attr: [ [ "class", "b-light" ] ] }, [ ["font-select", ""] ]);
 
         con.appendChild(this.tab.table());
+
+        const offa = document.createElement("button");
+        offa.innerHTML = "Offset All Animations";
+        offa.classList.add("b-light");
+        offa.addEventListener("click", e => {
+            showOverlay({ title: "Offset animation", size: [400, 200] },
+                `
+                <text>Offset:</text>
+                <br>
+                <input id="_a_off" placeholder="Offset here">
+                <br><br>
+                <button resolve-click='#_a_off|value'>Apply</button>
+                `
+            ).then(res => {
+                if (isNaN(res[0])) return;
+                const val = parseInt(res[0]);
+
+                $$.all("[a-e='start']", con).forEach(st => {
+                    st.value = parseInt(st.value) + val;
+                    st.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+                });
+                $$.all("[a-e='end']", con).forEach(st => {
+                    st.value = parseInt(st.value) + val;
+                    st.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+                });
+            }).catch(err => {});
+        });
+        con.append(offa);
 
         const ani = document.createElement("a-events");
         const anit = document.createElement("a-title");

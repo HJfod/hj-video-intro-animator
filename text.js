@@ -50,7 +50,7 @@ function addTemplate() {
 
 ipc["set-fonts"] = args => {
     global.fonts = args.fonts;
-    $$.all("a-text div table tr td select").forEach(s => {
+    $$.all("[font-select]").forEach(s => {
         s.innerHTML = "";
         fromArray(s, global.fonts);
     });

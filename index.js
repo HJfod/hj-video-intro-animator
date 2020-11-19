@@ -39,6 +39,7 @@ const brow = {
     frame: false,
     width: s[0],
     height: s[1],
+    icon: "via.ico",
     webPreferences: { 
         preload: path.join(__dirname, "preload.js"),
         nodeIntegration: false,

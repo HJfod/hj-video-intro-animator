@@ -1,16 +1,18 @@
 {
   "name": "hj-video-intro-animator",
+  "productName": "Video Intro Animator",
   "version": "1.0.0",
-  "description": "Video intro/transition text animation tool I made for my videos using JS.",
+  "description": "Video intro/transition text animation tool I made for my videos using JS and Electron.",
   "main": "index.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack-w32": "electron-packager . video-intro-animator --overwrite --asar=true --platform=win32 --arch=ia32 --icon=via.ico --prune=true --out=release-builds --ignore=via\\.png --ignore=presets --ignore=old --ignore=templates\\.json --ignore=user\\.json --version-string.CompanyName=\"HJfod\" --version-string.FileDescription=\"Video Intro Animator\" --version-string.ProductName=\"Video Intro Animator\""
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/HJfod/hj-video-intro-animator.git"
   },
-  "author": "",
+  "author": "HJfod",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/HJfod/hj-video-intro-animator/issues"
@@ -18,6 +20,7 @@
   "homepage": "https://github.com/HJfod/hj-video-intro-animator#readme",
   "dependencies": {
     "electron": "^10.1.5",
+    "electron-packager": "^15.1.0",
     "fontkit": "^1.8.1",
     "get-system-fonts": "^2.0.2"
   }
